@@ -3,52 +3,116 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HOLDFAST — le terminal vocal souverain pour ton Claude Code</title>
-<meta name="description" content="Ton ordinateur. Ta maison d'IA. Dans ton oreille. Partout. Passerelle vocale souveraine pour Claude Code — bâtie par un plombier.">
+<title>HOLDFAST — le terminal vocal souverain pour ton IA</title>
+<meta name="description" content="Ton ordinateur. Ton IA. Dans ton oreille. Partout — du chantier au bureau de programmeur. Passerelle vocale souveraine pour Claude Code.">
 <style>
   :root{
-    --bg:#0e1116; --panel:#161b23; --ink:#e8e6e1; --dim:#9aa3ad;
-    --accent:#e8a33d; --accent-ink:#1a1408; --line:#242b35; --ok:#7dbf6a;
+    --bg:#0a0d12; --panel:#12161d; --panel2:#161b24; --ink:#eceae4; --dim:#98a1ac;
+    --accent:#f0a83a; --accent2:#ffc46b; --accent-ink:#1a1408; --line:#232a35;
+    --ok:#7dd06a; --term-bg:#0c1117; --term-green:#7dd06a; --term-blue:#6ab7ff;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  body{background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}
-  .wrap{max-width:760px;margin:0 auto;padding:0 20px}
-  header{padding:18px 0;border-bottom:1px solid var(--line)}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden}
+  .wrap{max-width:840px;margin:0 auto;padding:0 20px}
+
+  /* fond vivant */
+  .sky{position:fixed;inset:0;z-index:-2;background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(240,168,58,.10), transparent 60%),
+    radial-gradient(900px 500px at 10% 110%, rgba(106,183,255,.07), transparent 60%),
+    var(--bg)}
+  .grid{position:fixed;inset:0;z-index:-1;opacity:.35;
+    background-image:linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size:44px 44px;
+    mask-image:radial-gradient(900px 500px at 50% 20%, #000 30%, transparent 75%)}
+
+  header{padding:18px 0;border-bottom:1px solid var(--line);position:sticky;top:0;
+    background:rgba(10,13,18,.82);backdrop-filter:blur(10px);z-index:10}
   .topbar{display:flex;justify-content:space-between;align-items:center}
-  .brand{font-weight:800;letter-spacing:.12em;font-size:1.05rem}
+  .brand{font-weight:800;letter-spacing:.14em;font-size:1.1rem}
   .brand span{color:var(--accent)}
   .lang button{background:none;border:1px solid var(--line);color:var(--dim);
-    padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.85rem}
+    padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.85rem;transition:.2s}
+  .lang button:hover{color:var(--ink);border-color:var(--dim)}
   .lang button.on{color:var(--accent);border-color:var(--accent)}
-  .hero{padding:64px 0 40px}
-  h1{font-size:2.6rem;line-height:1.1;letter-spacing:.04em;font-weight:800}
-  h1 small{display:block;font-size:1.15rem;color:var(--accent);margin-top:14px;
-    font-weight:600;letter-spacing:0}
-  .punch{margin:26px 0 8px;font-size:1.25rem;font-weight:700}
-  .hero p.lead{color:var(--dim);margin-top:14px}
-  .cta{display:inline-block;margin:34px 0 8px;background:var(--accent);
-    color:var(--accent-ink);font-weight:800;padding:16px 26px;border-radius:10px;
-    text-decoration:none;font-size:1.05rem}
-  .cta:hover{filter:brightness(1.08)}
-  .cta-sub{display:block;color:var(--dim);font-size:.85rem;margin-top:10px}
-  section{padding:34px 0;border-top:1px solid var(--line)}
-  h2{font-size:1.35rem;margin-bottom:16px;letter-spacing:.02em}
+
+  .hero{padding:72px 0 30px;text-align:left}
+  .kicker{display:inline-block;border:1px solid var(--line);border-radius:99px;
+    padding:6px 14px;color:var(--accent2);font-size:.82rem;letter-spacing:.06em;
+    background:rgba(240,168,58,.06);margin-bottom:22px}
+  .kicker .dot{display:inline-block;width:8px;height:8px;border-radius:50%;
+    background:var(--ok);margin-right:8px;animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  h1{font-size:3.1rem;line-height:1.05;letter-spacing:.03em;font-weight:800}
+  h1 small{display:block;font-size:1.2rem;color:var(--accent);margin-top:16px;font-weight:600;letter-spacing:0}
+  .punch{margin:26px 0 6px;font-size:1.4rem;font-weight:750}
+  .punch .w{display:inline-block;opacity:0;transform:translateY(12px);animation:up .5s forwards}
+  @keyframes up{to{opacity:1;transform:none}}
+  .hero p.lead{color:var(--dim);margin-top:16px;max-width:640px}
+  .everywhere{margin-top:14px;color:var(--ink);font-weight:600}
+  .everywhere .rot{color:var(--accent2);border-bottom:2px solid var(--accent);padding-bottom:1px}
+
+  .cta{display:inline-block;margin:30px 0 6px;background:linear-gradient(180deg,var(--accent2),var(--accent));
+    color:var(--accent-ink);font-weight:800;padding:17px 30px;border-radius:12px;
+    text-decoration:none;font-size:1.08rem;box-shadow:0 6px 30px rgba(240,168,58,.35);
+    transition:transform .15s, box-shadow .15s}
+  .cta:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(240,168,58,.5)}
+  .cta-sub{display:block;color:var(--dim);font-size:.85rem;margin-top:12px}
+  .places{color:var(--accent2);font-weight:700}
+
+  /* ============ LA DÉMO TERMINAL ============ */
+  .demo{margin:56px 0 8px;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    background:var(--term-bg);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .demo-bar{display:flex;align-items:center;gap:8px;background:#161d27;padding:11px 16px;
+    border-bottom:1px solid var(--line)}
+  .demo-bar i{width:12px;height:12px;border-radius:50%;display:inline-block}
+  .demo-bar .r{background:#ff5f57}.demo-bar .y{background:#febc2e}.demo-bar .g{background:#28c840}
+  .demo-bar b{margin-left:10px;color:var(--dim);font-weight:600;font-size:.85rem;font-family:ui-monospace,monospace}
+  .demo-scene{color:var(--accent2);margin-left:auto;font-size:.8rem;font-family:ui-monospace,monospace}
+  .demo-body{padding:22px 20px 26px;min-height:230px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.95rem;line-height:1.8}
+  .demo-body .voice{color:var(--term-blue)}
+  .demo-body .voice::before{content:"🎙 ";filter:grayscale(1) brightness(1.4)}
+  .demo-body .ai{color:var(--term-green)}
+  .demo-body .ai::before{content:"⚡ "}
+  .demo-body .act{color:var(--dim);font-style:italic}
+  .demo-body div{margin-bottom:10px;opacity:0;animation:up .35s forwards}
+  .cursor{display:inline-block;width:9px;height:18px;background:var(--term-green);
+    vertical-align:text-bottom;animation:pulse 1s infinite}
+
+  section{padding:40px 0;border-top:1px solid var(--line)}
+  h2{font-size:1.5rem;margin-bottom:18px;letter-spacing:.02em}
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s, transform .6s}
+  .reveal.in{opacity:1;transform:none}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:6px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;transition:.2s}
+  .card:hover{border-color:rgba(240,168,58,.5);transform:translateY(-3px)}
+  .card .ico{font-size:1.6rem;margin-bottom:10px;display:block}
+  .card b{display:block;margin-bottom:6px}
+  .card p{color:var(--dim);font-size:.92rem}
+
   ul{list-style:none}
-  ul li{padding:9px 0 9px 30px;position:relative;color:var(--ink)}
+  ul li{padding:9px 0 9px 30px;position:relative}
   ul li::before{content:"▸";position:absolute;left:6px;color:var(--accent)}
-  .plumber{background:var(--panel);border:1px solid var(--line);border-radius:12px;
-    padding:24px;margin-top:8px}
+
+  .plumber{background:linear-gradient(135deg, rgba(240,168,58,.08), transparent 55%), var(--panel2);
+    border:1px solid var(--line);border-radius:14px;padding:26px;margin-top:8px}
   .plumber b{color:var(--accent)}
-  .promise{font-size:1.1rem}
+  .quote{margin-top:14px;color:var(--accent2);font-style:italic;font-weight:600}
+
+  .promise{font-size:1.12rem}
   .promise b{color:var(--ok)}
   .faq dt{font-weight:700;margin-top:18px}
   .faq dd{color:var(--dim);margin-top:4px}
+  .bigcta{text-align:center;padding:56px 0 30px}
   footer{padding:40px 0 60px;color:var(--dim);font-size:.85rem;border-top:1px solid var(--line)}
   .hide{display:none}
-  @media(max-width:520px){h1{font-size:2rem}}
+  @media(max-width:560px){h1{font-size:2.2rem}.punch{font-size:1.15rem}.demo-body{font-size:.85rem}}
 </style>
 </head>
 <body>
+<div class="sky"></div><div class="grid"></div>
 <header><div class="wrap topbar">
   <div class="brand">HOLD<span>FAST</span></div>
   <div class="lang">
@@ -61,63 +125,80 @@
 <div id="fr">
 <div class="wrap">
   <div class="hero">
-    <h1>HOLDFAST<small>Le terminal vocal souverain pour ton Claude Code.</small></h1>
-    <p class="punch">Ton ordinateur. Ta maison d'IA. Dans ton oreille. Partout.</p>
-    <p class="lead">Holdfast est une passerelle de poche — Raspberry Pi durci +
-    oreillette éprouvée au chantier — qui te connecte à voix haute au Claude Code
-    qui roule sur <b>ton</b> ordinateur, chez toi. Pas un gadget infonuagique de
-    plus : ton PC, tes données, ta maison d'IA. Elle te suit au garage, au
-    chantier, à la pêche.</p>
+    <span class="kicker"><span class="dot"></span>Lot fondateur — 10 unités · dépôts remboursables</span>
+    <h1>HOLDFAST<small>Le terminal vocal souverain pour ton IA.</small></h1>
+    <p class="punch" id="punch-fr"></p>
+    <p class="lead">Une passerelle de poche — Raspberry Pi durci + oreillette éprouvée —
+    qui te connecte à voix haute au Claude Code qui roule sur <b>ton</b> ordinateur,
+    chez toi. Pas un gadget infonuagique : ton PC, tes données, ton IA.</p>
+    <p class="everywhere">Elle travaille où TU travailles :
+      <span class="rot" id="rot-fr">dans ton terminal</span></p>
     <a class="cta" href="#" onclick="alert('Les dépôts fondateurs ouvrent cette semaine. Reviens dans quelques jours!');return false;">Réserver ma place fondateur · 50&nbsp;$ remboursable</a>
-    <span class="cta-sub">Lot fondateur ~10 unités · prix final visé 1&nbsp;500-2&nbsp;000&nbsp;$&nbsp;CA ·
-    remboursable en tout temps, un courriel, sans question.</span>
+    <span class="cta-sub"><span class="places">10 places fondateur</span> · prix final visé 1&nbsp;500-2&nbsp;000&nbsp;$&nbsp;CA · remboursable en tout temps, un courriel, sans question.</span>
   </div>
 
-  <section class="plumber">
-    <p><b>Bâti par un plombier.</b> Pas dans un incubateur : dans un atelier,
-    entre deux quarts de travail, sur six ans d'itérations. La boîte existe.
-    Elle roule tous les jours sur un vrai chantier. On la fait passer de
-    «&nbsp;ma boîte&nbsp;» à «&nbsp;ta boîte&nbsp;».</p>
+  <div class="demo">
+    <div class="demo-bar"><i class="r"></i><i class="y"></i><i class="g"></i>
+      <b>holdfast — session en direct</b><span class="demo-scene" id="scene-fr"></span></div>
+    <div class="demo-body" id="demo-fr"></div>
+  </div>
+
+  <section class="reveal">
+    <h2>Pour qui?</h2>
+    <div class="cards">
+      <div class="card"><span class="ico">⌨️</span><b>Le programmeur</b>
+        <p>Ton agent lance les tests, lit l'erreur, corrige — pendant que tu marches, cuisines, décroches de l'écran. Les mains libres, le cerveau branché.</p></div>
+      <div class="card"><span class="ico">🔧</span><b>Le gars et la fille de métier</b>
+        <p>Cotes de coupe, fiches techniques, calculs, courriels — répondus dans ton oreille pendant que tes deux mains tiennent l'ouvrage.</p></div>
+      <div class="card"><span class="ico">💼</span><b>Le bureau et la route</b>
+        <p>Courriels, agenda, notes, recherches — ta maison d'IA te suit dans le char, en réunion, au gym. Ton bureau devient portatif.</p></div>
+    </div>
   </section>
 
-  <section>
+  <section class="reveal">
     <h2>Ce que tu reçois</h2>
     <ul>
       <li>La boîte montée et testée — image système chiffrée et verrouillée</li>
       <li>L'oreillette certifiée terrain (le bouton sourdine est un vrai frein d'urgence)</li>
-      <li>La «&nbsp;maison&nbsp;» Claude Code préinstallée : voix, mémoire persistante,
-          garde-fous, hooks — tu bâtis <b>tes</b> tableaux dedans, façon Super Mario Maker</li>
+      <li>La «&nbsp;maison&nbsp;» Claude Code préinstallée : voix, mémoire persistante, garde-fous, hooks — tu bâtis <b>tes</b> tableaux dedans, façon Super Mario Maker</li>
       <li>Les mises à jour signées</li>
       <li>Ligne directe avec le fondateur — t'es un des 10</li>
     </ul>
   </section>
 
-  <section>
-    <h2>Ce que ça prend de ton bord</h2>
-    <ul>
-      <li>Un PC ou serveur à la maison qui roule Claude Code (ou l'envie sérieuse de t'y mettre)</li>
-      <li>Ton propre abonnement Anthropic — on ne revend pas de l'IA, on te donne le <b>volant</b> de la tienne</li>
-    </ul>
+  <section class="reveal">
+    <h2>L'histoire, sans vernis</h2>
+    <div class="plumber">
+      <p><b>Bâti par un plombier.</b> Pas dans un incubateur : dans un atelier, entre deux
+      quarts de travail, sur six ans d'itérations. La boîte existe. Elle roule tous les
+      jours sur un vrai chantier — et le soir, elle code, elle gère les courriels, elle
+      fait la recherche. On la fait passer de «&nbsp;ma boîte&nbsp;» à «&nbsp;ta boîte&nbsp;».</p>
+      <p class="quote">«&nbsp;Je suis un plombier un peu bizarre — mais je suis un plombier pareil. On n'a jamais menti.&nbsp;»</p>
+    </div>
   </section>
 
-  <section>
+  <section class="reveal">
     <h2>La promesse est dans le nom</h2>
-    <p class="promise">Holdfast : «&nbsp;tiens bon&nbsp;». Les gadgets IA infonuagiques
-    meurent quand la compagnie ferme — demande au Humane AI Pin. <b>Si on coule
-    demain matin, ta boîte marche encore</b> : elle roule chez toi.</p>
+    <p class="promise">Holdfast : «&nbsp;tiens bon&nbsp;». Les gadgets IA infonuagiques meurent
+    quand la compagnie ferme — demande au Humane AI Pin. <b>Si on coule demain matin, ta
+    boîte marche encore</b> : elle roule chez toi.</p>
   </section>
 
-  <section class="faq">
+  <section class="reveal faq">
     <h2>Questions franches</h2>
     <dl>
+      <dt>Ça marche où?</dt><dd>Partout où t'as ton oreillette : chantier, bureau, char, maison. La boîte parle à ton ordinateur par internet — cellulaire ou WiFi.</dd>
       <dt>Quand?</dt><dd>Lot fondateur visé cet automne, si le seuil est atteint.</dd>
-      <dt>C'est quoi, le seuil?</dt><dd>25 dépôts. En dessous, tout le monde est
-      remboursé automatiquement — on ne commande pas une vis avant que le lot soit réel.</dd>
+      <dt>C'est quoi, le seuil?</dt><dd>25 dépôts. En dessous, tout le monde est remboursé automatiquement — on ne commande pas une vis avant que le lot soit réel.</dd>
       <dt>Mes données?</dt><dd>Rien ne passe par nos serveurs. La passerelle parle à ton ordinateur.</dd>
-      <dt>Le code?</dt><dd>La maison est à toi, sur ta machine. L'image système est
-      signée et chiffrée — comme une console.</dd>
+      <dt>Ça prend quoi?</dt><dd>Un PC/serveur qui roule Claude Code (ou l'envie sérieuse de commencer) et ton abonnement Anthropic. On ne revend pas d'IA — on te donne le volant de la tienne.</dd>
     </dl>
   </section>
+
+  <div class="bigcta reveal">
+    <a class="cta" href="#" onclick="alert('Les dépôts fondateurs ouvrent cette semaine. Reviens dans quelques jours!');return false;">Je veux ma place fondateur</a>
+    <span class="cta-sub">50 $ remboursable en tout temps · 10 places</span>
+  </div>
 </div>
 </div>
 
@@ -125,62 +206,80 @@
 <div id="en" class="hide">
 <div class="wrap">
   <div class="hero">
-    <h1>HOLDFAST<small>The sovereign voice terminal for your Claude Code.</small></h1>
-    <p class="punch">Your computer. Your AI home. In your ear. Anywhere.</p>
-    <p class="lead">Holdfast is a pocket gateway — hardened Raspberry Pi +
-    field-proven headset — that connects you by voice to the Claude Code running
-    on <b>your</b> machine, at your place. Not another cloud gadget: your PC,
-    your data, your AI home. It follows you to the garage, the job site, the
-    fishing spot.</p>
+    <span class="kicker"><span class="dot"></span>Founder batch — 10 units · refundable deposits</span>
+    <h1>HOLDFAST<small>The sovereign voice terminal for your AI.</small></h1>
+    <p class="punch" id="punch-en"></p>
+    <p class="lead">A pocket gateway — hardened Raspberry Pi + field-proven headset —
+    that connects you by voice to the Claude Code running on <b>your</b> machine, at
+    your place. Not a cloud gadget: your PC, your data, your AI.</p>
+    <p class="everywhere">It works where YOU work:
+      <span class="rot" id="rot-en">in your terminal</span></p>
     <a class="cta" href="#" onclick="alert('Founder deposits open this week. Check back in a few days!');return false;">Hold my founder spot · $50 refundable</a>
-    <span class="cta-sub">Founder batch ~10 units · target price $1,100-1,500 USD ·
-    refundable anytime, one email, no questions.</span>
+    <span class="cta-sub"><span class="places">10 founder spots</span> · target price $1,100-1,500 USD · refundable anytime, one email, no questions.</span>
   </div>
 
-  <section class="plumber">
-    <p><b>Built by a plumber.</b> Not in an incubator — in a workshop, between
-    shifts, over six years of iteration. The box exists. It runs every day on a
-    real job site. We're taking it from “my box” to “your box”.</p>
+  <div class="demo">
+    <div class="demo-bar"><i class="r"></i><i class="y"></i><i class="g"></i>
+      <b>holdfast — live session</b><span class="demo-scene" id="scene-en"></span></div>
+    <div class="demo-body" id="demo-en"></div>
+  </div>
+
+  <section class="reveal">
+    <h2>Who is it for?</h2>
+    <div class="cards">
+      <div class="card"><span class="ico">⌨️</span><b>The programmer</b>
+        <p>Your agent runs the tests, reads the error, ships the fix — while you walk, cook, step away from the screen. Hands free, brain plugged in.</p></div>
+      <div class="card"><span class="ico">🔧</span><b>The tradesperson</b>
+        <p>Cut lengths, spec sheets, calculations, emails — answered in your ear while both hands hold the work.</p></div>
+      <div class="card"><span class="ico">💼</span><b>The office & the road</b>
+        <p>Email, calendar, notes, research — your AI home follows you in the truck, in meetings, at the gym. Your desk goes portable.</p></div>
+    </div>
   </section>
 
-  <section>
+  <section class="reveal">
     <h2>What you get</h2>
     <ul>
       <li>The box, assembled and tested — encrypted, locked system image</li>
       <li>The field-certified headset (the mute button is a real emergency brake)</li>
-      <li>The Claude Code “home” pre-installed: voice, persistent memory,
-          guardrails, hooks — you build <b>your</b> levels in it, Super Mario Maker style</li>
+      <li>The Claude Code “home” pre-installed: voice, persistent memory, guardrails, hooks — you build <b>your</b> levels in it, Super Mario Maker style</li>
       <li>Signed updates</li>
       <li>A direct line to the founder — you're one of 10</li>
     </ul>
   </section>
 
-  <section>
-    <h2>What you need on your end</h2>
-    <ul>
-      <li>A PC or server at home running Claude Code (or the serious itch to start)</li>
-      <li>Your own Anthropic subscription — we don't resell AI, we hand you the <b>wheel</b> of yours</li>
-    </ul>
+  <section class="reveal">
+    <h2>The story, no varnish</h2>
+    <div class="plumber">
+      <p><b>Built by a plumber.</b> Not in an incubator — in a workshop, between shifts,
+      over six years of iteration. The box exists. It runs every day on a real job site —
+      and at night it codes, handles email, does research. We're taking it from “my box”
+      to “your box”.</p>
+      <p class="quote">“I'm a bit of a weird plumber — but I'm a plumber all the same. We never lied.”</p>
+    </div>
   </section>
 
-  <section>
+  <section class="reveal">
     <h2>The promise is in the name</h2>
-    <p class="promise">Holdfast. Cloud AI gadgets die when the company does —
-    ask the Humane AI Pin. <b>If we sink tomorrow morning, your box still
-    works</b>: it runs at your place.</p>
+    <p class="promise">Holdfast. Cloud AI gadgets die when the company does — ask the
+    Humane AI Pin. <b>If we sink tomorrow morning, your box still works</b>: it runs at
+    your place.</p>
   </section>
 
-  <section class="faq">
+  <section class="reveal faq">
     <h2>Straight answers</h2>
     <dl>
+      <dt>Where does it work?</dt><dd>Anywhere you wear the headset: job site, office, truck, home. The box reaches your computer over the internet — cellular or WiFi.</dd>
       <dt>When?</dt><dd>Founder batch targeted this fall, if the threshold is met.</dd>
-      <dt>What threshold?</dt><dd>25 deposits. Below that, everyone is refunded
-      automatically — we don't order a single screw before the batch is real.</dd>
+      <dt>What threshold?</dt><dd>25 deposits. Below that, everyone is refunded automatically — we don't order a single screw before the batch is real.</dd>
       <dt>My data?</dt><dd>Nothing goes through our servers. The gateway talks to your computer.</dd>
-      <dt>The code?</dt><dd>The home is yours, on your machine. The system image is
-      signed and encrypted — console-style.</dd>
+      <dt>What do I need?</dt><dd>A PC/server running Claude Code (or the serious itch to start) and your own Anthropic subscription. We don't resell AI — we hand you the wheel of yours.</dd>
     </dl>
   </section>
+
+  <div class="bigcta reveal">
+    <a class="cta" href="#" onclick="alert('Founder deposits open this week. Check back in a few days!');return false;">I want my founder spot</a>
+    <span class="cta-sub">$50 refundable anytime · 10 spots</span>
+  </div>
 </div>
 </div>
 
@@ -190,17 +289,119 @@
 </div></footer>
 
 <script>
+/* ---------- langue ---------- */
 function setLang(l){
-  document.getElementById('fr').classList.toggle('hide', l!=='fr');
-  document.getElementById('en').classList.toggle('hide', l!=='en');
-  document.getElementById('foot-fr').classList.toggle('hide', l!=='fr');
-  document.getElementById('foot-en').classList.toggle('hide', l!=='en');
-  document.getElementById('btn-fr').classList.toggle('on', l==='fr');
-  document.getElementById('btn-en').classList.toggle('on', l==='en');
+  for(const id of ['fr','en']){
+    document.getElementById(id).classList.toggle('hide', l!==id);
+    document.getElementById('foot-'+id).classList.toggle('hide', l!==id);
+    document.getElementById('btn-'+id).classList.toggle('on', l===id);
+  }
   document.documentElement.lang = l;
+  startPunch(l); startRot(l); startDemo(l); observeReveals();
 }
-// anglophone par défaut si le navigateur n'est pas français
-if(!(navigator.language||'').toLowerCase().startsWith('fr')) setLang('en');
+
+/* ---------- punch mot par mot ---------- */
+const PUNCH = {
+  fr: ["Ton ordinateur.","Ton IA.","Dans ton oreille.","Partout."],
+  en: ["Your computer.","Your AI.","In your ear.","Anywhere."]
+};
+function startPunch(l){
+  const el = document.getElementById('punch-'+l); if(!el) return;
+  el.innerHTML = PUNCH[l].map((w,i)=>`<span class="w" style="animation-delay:${.3+i*.45}s">${w}&nbsp;</span>`).join('');
+}
+
+/* ---------- rotation "où tu travailles" ---------- */
+const ROT = {
+  fr: ["dans ton terminal","sur le chantier","au bureau","dans ton char","à l'atelier","à la pêche"],
+  en: ["in your terminal","on the job site","at the office","in your truck","in the workshop","gone fishing"]
+};
+let rotTimers = {};
+function startRot(l){
+  clearInterval(rotTimers[l]);
+  const el = document.getElementById('rot-'+l); if(!el) return;
+  let i = 0;
+  rotTimers[l] = setInterval(()=>{ i=(i+1)%ROT[l].length;
+    el.style.opacity=0;
+    setTimeout(()=>{el.textContent=ROT[l][i]; el.style.opacity=1;},220);
+  }, 2200);
+  el.style.transition='opacity .2s';
+}
+
+/* ---------- LA DÉMO : 3 scénarios en rotation ---------- */
+const SCENES = {
+ fr: [
+  {tag:"scénario 1/3 — le programmeur", lines:[
+    ["voice","« Claude, lance les tests du module de facturation. »"],
+    ["act","…l'agent travaille sur TON ordinateur, à la maison…"],
+    ["ai","42 tests. 41 passent. `test_taxes_quebec` échoue — arrondi à la 2e décimale."],
+    ["voice","« Corrige-le pis relance. »"],
+    ["ai","Corrigé, 42/42 verts. Commit prêt pour ta revue."]]},
+  {tag:"scénario 2/3 — le chantier", lines:[
+    ["voice","« C'est quoi ma coupe : 2 pouces, un 90 pis un té, 38 et quart centre-à-centre? »"],
+    ["act","…take-out réels du catalogue, engagement des filets compté…"],
+    ["ai","Coupe à 35 pouces et quart, pile. Take-out : 1½ le 90, 1½ le té."],
+    ["voice","« Parfait, je coupe. »"]]},
+  {tag:"scénario 3/3 — la route", lines:[
+    ["voice","« Lis-moi le courriel du client pendant que je conduis. »"],
+    ["ai","Réponse de Clément : il veut le rapport vendredi, il ajoute 2 étages au projet."],
+    ["voice","« Réponds que vendredi c'est bon, pis mets-le dans mon agenda. »"],
+    ["ai","Brouillon prêt — je te le relis avant d'envoyer. Agenda : vendredi 9 h, bloqué."]]}
+ ],
+ en: [
+  {tag:"scene 1/3 — the programmer", lines:[
+    ["voice","“Claude, run the billing module tests.”"],
+    ["act","…the agent works on YOUR machine, back home…"],
+    ["ai","42 tests. 41 pass. `test_quebec_taxes` fails — 2nd-decimal rounding."],
+    ["voice","“Fix it and re-run.”"],
+    ["ai","Fixed — 42/42 green. Commit ready for your review."]]},
+  {tag:"scene 2/3 — the job site", lines:[
+    ["voice","“What's my cut: 2-inch, a 90 and a tee, 38¼ center-to-center?”"],
+    ["act","…real catalog take-outs, thread engagement included…"],
+    ["ai","Cut at 35¼, dead on. Take-outs: 1½ for the 90, 1½ for the tee."],
+    ["voice","“Perfect, cutting now.”"]]},
+  {tag:"scene 3/3 — the road", lines:[
+    ["voice","“Read me the client's email while I drive.”"],
+    ["ai","Reply from Clement: report due Friday, he's adding 2 floors to the project."],
+    ["voice","“Tell him Friday works, and put it in my calendar.”"],
+    ["ai","Draft ready — I'll read it back before sending. Calendar: Friday 9 a.m., booked."]]}
+ ]
+};
+let demoTimers = {};
+function startDemo(l){
+  (demoTimers[l]||[]).forEach(clearTimeout); demoTimers[l]=[];
+  const body = document.getElementById('demo-'+l);
+  const scene = document.getElementById('scene-'+l);
+  if(!body) return;
+  let s = 0;
+  function play(){
+    const sc = SCENES[l][s];
+    scene.textContent = sc.tag;
+    body.innerHTML = '';
+    let t = 400;
+    sc.lines.forEach(([cls,txt])=>{
+      demoTimers[l].push(setTimeout(()=>{
+        const d = document.createElement('div');
+        d.className = cls; d.innerHTML = txt + (cls==='ai' ? ' <span class="cursor"></span>' : '');
+        body.querySelectorAll('.cursor').forEach(c=>c.remove());
+        body.appendChild(d);
+      }, t));
+      t += (cls==='act') ? 1300 : 2100;
+    });
+    demoTimers[l].push(setTimeout(()=>{ s=(s+1)%SCENES[l].length; play(); }, t+2600));
+  }
+  play();
+}
+
+/* ---------- reveal au défilement ---------- */
+function observeReveals(){
+  const io = new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('in'); io.unobserve(e.target);}
+  }),{threshold:.12});
+  document.querySelectorAll('.reveal:not(.in)').forEach(el=>io.observe(el));
+}
+
+const initial = (navigator.language||'').toLowerCase().startsWith('fr') ? 'fr' : 'en';
+setLang(initial);
 </script>
 </body>
 </html>
