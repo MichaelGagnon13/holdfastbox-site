@@ -3,112 +3,137 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HOLDFAST — le terminal vocal souverain pour ton IA</title>
-<meta name="description" content="Ton ordinateur. Ton IA. Dans ton oreille. Partout — du chantier au bureau de programmeur. Passerelle vocale souveraine pour Claude Code.">
+<title>HOLDFAST — pilote ton Claude Code à la voix, de partout</title>
+<meta name="description" content="Pilote le Claude Code qui roule sur TON PC, depuis ton oreillette — au bureau, au chantier, sur la route. 0 octet sur nos serveurs. Lot fondateur de 10, dépôt 50 $ remboursable.">
 <style>
   :root{
     --bg:#0a0d12; --panel:#12161d; --panel2:#161b24; --ink:#eceae4; --dim:#98a1ac;
     --accent:#f0a83a; --accent2:#ffc46b; --accent-ink:#1a1408; --line:#232a35;
-    --ok:#7dd06a; --term-bg:#0c1117; --term-green:#7dd06a; --term-blue:#6ab7ff;
+    --ok:#7dd06a; --bad:#ff7a6e; --term-bg:#0c1117; --term-green:#7dd06a; --term-blue:#6ab7ff;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden}
-  .wrap{max-width:840px;margin:0 auto;padding:0 20px}
-
-  /* fond vivant */
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px}
   .sky{position:fixed;inset:0;z-index:-2;background:
     radial-gradient(1200px 600px at 80% -10%, rgba(240,168,58,.10), transparent 60%),
-    radial-gradient(900px 500px at 10% 110%, rgba(106,183,255,.07), transparent 60%),
-    var(--bg)}
+    radial-gradient(900px 500px at 10% 110%, rgba(106,183,255,.07), transparent 60%), var(--bg)}
   .grid{position:fixed;inset:0;z-index:-1;opacity:.35;
     background-image:linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
     background-size:44px 44px;
     mask-image:radial-gradient(900px 500px at 50% 20%, #000 30%, transparent 75%)}
-
-  header{padding:18px 0;border-bottom:1px solid var(--line);position:sticky;top:0;
-    background:rgba(10,13,18,.82);backdrop-filter:blur(10px);z-index:10}
+  header{padding:16px 0;border-bottom:1px solid var(--line);position:sticky;top:0;
+    background:rgba(10,13,18,.85);backdrop-filter:blur(10px);z-index:10}
   .topbar{display:flex;justify-content:space-between;align-items:center}
   .brand{font-weight:800;letter-spacing:.14em;font-size:1.1rem}
   .brand span{color:var(--accent)}
   .lang button{background:none;border:1px solid var(--line);color:var(--dim);
     padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.85rem;transition:.2s}
-  .lang button:hover{color:var(--ink);border-color:var(--dim)}
   .lang button.on{color:var(--accent);border-color:var(--accent)}
 
-  .hero{padding:72px 0 30px;text-align:left}
-  .kicker{display:inline-block;border:1px solid var(--line);border-radius:99px;
-    padding:6px 14px;color:var(--accent2);font-size:.82rem;letter-spacing:.06em;
-    background:rgba(240,168,58,.06);margin-bottom:22px}
-  .kicker .dot{display:inline-block;width:8px;height:8px;border-radius:50%;
-    background:var(--ok);margin-right:8px;animation:pulse 1.6s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-  h1{font-size:3.1rem;line-height:1.05;letter-spacing:.03em;font-weight:800}
-  h1 small{display:block;font-size:1.2rem;color:var(--accent);margin-top:16px;font-weight:600;letter-spacing:0}
-  .punch{margin:26px 0 6px;font-size:1.4rem;font-weight:750}
-  .punch .w{display:inline-block;opacity:0;transform:translateY(12px);animation:up .5s forwards}
-  @keyframes up{to{opacity:1;transform:none}}
-  .hero p.lead{color:var(--dim);margin-top:16px;max-width:640px}
-  .everywhere{margin-top:14px;color:var(--ink);font-weight:600}
-  .everywhere .rot{color:var(--accent2);border-bottom:2px solid var(--accent);padding-bottom:1px}
-
-  .cta{display:inline-block;margin:30px 0 6px;background:linear-gradient(180deg,var(--accent2),var(--accent));
+  .hero{padding:58px 0 26px}
+  .slots{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);
+    border-radius:99px;padding:8px 16px;background:rgba(240,168,58,.05);margin-bottom:22px;font-size:.85rem;color:var(--dim)}
+  .slots .cells{display:inline-flex;gap:3px;margin:0 8px}
+  .slots .c{width:11px;height:15px;border:1px solid var(--accent);border-radius:3px;background:transparent}
+  .slots .c.full{background:var(--accent)}
+  h1{font-size:2.5rem;line-height:1.12;letter-spacing:.01em;font-weight:800;max-width:760px}
+  h1 em{font-style:normal;color:var(--accent2)}
+  .sub{margin-top:16px;font-size:1.12rem;color:var(--dim);max-width:680px}
+  .sub b{color:var(--ink)}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+  .chip{border:1px solid var(--line);border-radius:8px;padding:8px 14px;font-size:.88rem;background:var(--panel)}
+  .chip::before{content:"✓ ";color:var(--ok);font-weight:700}
+  .cta{display:inline-block;margin:28px 0 4px;background:linear-gradient(180deg,var(--accent2),var(--accent));
     color:var(--accent-ink);font-weight:800;padding:17px 30px;border-radius:12px;
-    text-decoration:none;font-size:1.08rem;box-shadow:0 6px 30px rgba(240,168,58,.35);
+    text-decoration:none;font-size:1.06rem;box-shadow:0 6px 30px rgba(240,168,58,.35);
     transition:transform .15s, box-shadow .15s}
   .cta:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(240,168,58,.5)}
-  .cta-sub{display:block;color:var(--dim);font-size:.85rem;margin-top:12px}
-  .places{color:var(--accent2);font-weight:700}
+  .cta-sub{display:block;color:var(--dim);font-size:.86rem;margin-top:10px}
 
-  /* ============ LA DÉMO TERMINAL ============ */
-  .demo{margin:56px 0 8px;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  /* SVG boucle des données */
+  .loopbox{margin:46px 0 8px;border:1px solid var(--line);border-radius:14px;
+    background:var(--panel);padding:20px 18px 8px}
+  .loopbox h3{font-size:.95rem;color:var(--dim);font-weight:600;margin-bottom:4px;text-align:center}
+  .loopbox svg{width:100%;height:auto;display:block}
+  .loopbox .cap{text-align:center;color:var(--dim);font-size:.82rem;padding:8px 0 12px}
+  .loopbox .cap b{color:var(--ok)}
+
+  /* démo interactive */
+  .demo{margin:38px 0 8px;border:1px solid var(--line);border-radius:14px;overflow:hidden;
     background:var(--term-bg);box-shadow:0 20px 60px rgba(0,0,0,.5)}
-  .demo-bar{display:flex;align-items:center;gap:8px;background:#161d27;padding:11px 16px;
-    border-bottom:1px solid var(--line)}
+  .demo-bar{display:flex;align-items:center;gap:8px;background:#161d27;padding:10px 16px;border-bottom:1px solid var(--line)}
   .demo-bar i{width:12px;height:12px;border-radius:50%;display:inline-block}
   .demo-bar .r{background:#ff5f57}.demo-bar .y{background:#febc2e}.demo-bar .g{background:#28c840}
   .demo-bar b{margin-left:10px;color:var(--dim);font-weight:600;font-size:.85rem;font-family:ui-monospace,monospace}
-  .demo-scene{color:var(--accent2);margin-left:auto;font-size:.8rem;font-family:ui-monospace,monospace}
-  .demo-body{padding:22px 20px 26px;min-height:230px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.95rem;line-height:1.8}
+  .tabs{display:flex;gap:0;border-bottom:1px solid var(--line);background:#10161f}
+  .tabs button{flex:1;background:none;border:none;border-right:1px solid var(--line);
+    color:var(--dim);padding:12px 8px;cursor:pointer;font-size:.9rem;font-family:ui-monospace,monospace;transition:.15s}
+  .tabs button:last-child{border-right:none}
+  .tabs button.on{color:var(--accent2);background:rgba(240,168,58,.07);box-shadow:inset 0 -2px 0 var(--accent)}
+  .demo-body{padding:20px 20px 10px;min-height:220px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.93rem;line-height:1.75}
   .demo-body .voice{color:var(--term-blue)}
-  .demo-body .voice::before{content:"🎙 ";filter:grayscale(1) brightness(1.4)}
+  .demo-body .voice::before{content:"🎙 "}
   .demo-body .ai{color:var(--term-green)}
   .demo-body .ai::before{content:"⚡ "}
-  .demo-body .act{color:var(--dim);font-style:italic}
-  .demo-body div{margin-bottom:10px;opacity:0;animation:up .35s forwards}
-  .cursor{display:inline-block;width:9px;height:18px;background:var(--term-green);
-    vertical-align:text-bottom;animation:pulse 1s infinite}
+  .demo-body .act{color:var(--dim);font-style:italic;font-size:.85rem}
+  .demo-body div{margin-bottom:9px;opacity:0;animation:up .3s forwards}
+  @keyframes up{to{opacity:1;transform:none}}
+  .cursor{display:inline-block;width:9px;height:17px;background:var(--term-green);vertical-align:text-bottom;animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .mic-row{display:flex;align-items:center;gap:14px;padding:6px 20px 18px}
+  .mic{width:58px;height:58px;border-radius:50%;border:2px solid var(--accent);
+    background:radial-gradient(circle at 35% 30%, rgba(255,196,107,.25), rgba(240,168,58,.08));
+    cursor:pointer;display:grid;place-items:center;transition:.15s;flex-shrink:0;user-select:none;-webkit-user-select:none}
+  .mic:active,.mic.hot{background:var(--accent);box-shadow:0 0 0 8px rgba(240,168,58,.18)}
+  .mic svg{width:24px;height:24px;fill:var(--accent2)}
+  .mic:active svg,.mic.hot svg{fill:var(--accent-ink)}
+  .mic-hint{font-size:.85rem;color:var(--dim)}
+  .mic-hint b{color:var(--ink)}
+  .waves{display:none;align-items:flex-end;gap:3px;height:26px}
+  .waves.on{display:inline-flex}
+  .waves i{width:4px;background:var(--accent);border-radius:2px;animation:wv .7s infinite ease-in-out}
+  .waves i:nth-child(2){animation-delay:.1s}.waves i:nth-child(3){animation-delay:.2s}
+  .waves i:nth-child(4){animation-delay:.3s}.waves i:nth-child(5){animation-delay:.15s}
+  @keyframes wv{0%,100%{height:6px}50%{height:24px}}
+  .simu-note{padding:0 20px 14px;color:var(--dim);font-size:.78rem;font-style:italic}
 
-  section{padding:40px 0;border-top:1px solid var(--line)}
-  h2{font-size:1.5rem;margin-bottom:18px;letter-spacing:.02em}
+  section{padding:38px 0;border-top:1px solid var(--line)}
+  h2{font-size:1.5rem;margin-bottom:18px}
   .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s, transform .6s}
   .reveal.in{opacity:1;transform:none}
-
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:6px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;transition:.2s}
   .card:hover{border-color:rgba(240,168,58,.5);transform:translateY(-3px)}
   .card .ico{font-size:1.6rem;margin-bottom:10px;display:block}
   .card b{display:block;margin-bottom:6px}
   .card p{color:var(--dim);font-size:.92rem}
-
   ul{list-style:none}
-  ul li{padding:9px 0 9px 30px;position:relative}
+  ul li{padding:8px 0 8px 30px;position:relative}
   ul li::before{content:"▸";position:absolute;left:6px;color:var(--accent)}
-
+  .not li::before{content:"—";color:var(--bad)}
+  .diy{width:100%;border-collapse:collapse;font-size:.92rem;margin-top:8px}
+  .diy th,.diy td{border:1px solid var(--line);padding:11px 13px;text-align:left;vertical-align:top}
+  .diy th{background:var(--panel2);color:var(--accent2)}
+  .diy td:first-child{color:var(--dim)}
   .plumber{background:linear-gradient(135deg, rgba(240,168,58,.08), transparent 55%), var(--panel2);
-    border:1px solid var(--line);border-radius:14px;padding:26px;margin-top:8px}
+    border:1px solid var(--line);border-radius:14px;padding:26px}
   .plumber b{color:var(--accent)}
   .quote{margin-top:14px;color:var(--accent2);font-style:italic;font-weight:600}
-
-  .promise{font-size:1.12rem}
+  .days{color:var(--ok);font-weight:700}
+  .steps{counter-reset:s;margin-top:6px}
+  .steps li{counter-increment:s;padding-left:44px}
+  .steps li::before{content:counter(s);color:var(--accent-ink);background:var(--accent);
+    width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.85rem;left:0;top:8px}
+  .promise{font-size:1.1rem}
   .promise b{color:var(--ok)}
   .faq dt{font-weight:700;margin-top:18px}
   .faq dd{color:var(--dim);margin-top:4px}
-  .bigcta{text-align:center;padding:56px 0 30px}
+  .bigcta{text-align:center;padding:54px 0 28px}
   footer{padding:40px 0 60px;color:var(--dim);font-size:.85rem;border-top:1px solid var(--line)}
   .hide{display:none}
-  @media(max-width:560px){h1{font-size:2.2rem}.punch{font-size:1.15rem}.demo-body{font-size:.85rem}}
+  @media(max-width:560px){h1{font-size:1.75rem}.demo-body{font-size:.84rem}.tabs button{font-size:.78rem}}
 </style>
 </head>
 <body>
@@ -125,79 +150,144 @@
 <div id="fr">
 <div class="wrap">
   <div class="hero">
-    <span class="kicker"><span class="dot"></span>Lot fondateur — 10 unités · dépôts remboursables</span>
-    <h1>HOLDFAST<small>Le terminal vocal souverain pour ton IA.</small></h1>
-    <p class="punch" id="punch-fr"></p>
-    <p class="lead">Une passerelle de poche — Raspberry Pi durci + oreillette éprouvée —
-    qui te connecte à voix haute au Claude Code qui roule sur <b>ton</b> ordinateur,
-    chez toi. Pas un gadget infonuagique : ton PC, tes données, ton IA.</p>
-    <p class="everywhere">Elle travaille où TU travailles :
-      <span class="rot" id="rot-fr">dans ton terminal</span></p>
-    <a class="cta" href="#" onclick="alert('Les dépôts fondateurs ouvrent cette semaine. Reviens dans quelques jours!');return false;">Réserver ma place fondateur · 50&nbsp;$ remboursable</a>
-    <span class="cta-sub"><span class="places">10 places fondateur</span> · prix final visé 1&nbsp;500-2&nbsp;000&nbsp;$&nbsp;CA · remboursable en tout temps, un courriel, sans question.</span>
+    <span class="slots"><span class="lbl">Lot fondateur</span><span class="cells" data-cells></span><span class="cnt" data-cnt></span></span>
+    <h1>Pilote le Claude Code qui roule sur <em>ton</em> PC — depuis ton oreillette, <em>de partout</em>.</h1>
+    <p class="sub">Dis «&nbsp;lance les tests&nbsp;»&nbsp;: Holdfast transmet ta voix à ton agent, chez toi, et te lit
+    le résultat dans l'oreille. En marchant, au chantier, dans le char. <b>Ta voix ne touche jamais nos serveurs.</b></p>
+    <div class="chips">
+      <span class="chip">Prototype utilisé chaque jour depuis <span class="days" data-days></span> jours</span>
+      <span class="chip">0 octet sur les serveurs Holdfast</span>
+      <span class="chip">Dépôt 50&nbsp;$ remboursable par courriel</span>
+    </div>
+    <a class="cta" href="#" onclick="alert('Les dépôts fondateurs ouvrent cette semaine. Reviens dans quelques jours!');return false;">Réserver 1 des 10 — 50&nbsp;$ remboursable</a>
+    <span class="cta-sub">Remboursable en tout temps, un courriel, sans question · prix final visé 1&nbsp;500-2&nbsp;000&nbsp;$&nbsp;CA, confirmé AVANT tout solde.</span>
   </div>
 
-  <div class="demo">
-    <div class="demo-bar"><i class="r"></i><i class="y"></i><i class="g"></i>
-      <b>holdfast — session en direct</b><span class="demo-scene" id="scene-fr"></span></div>
+  <div class="loopbox reveal">
+    <h3>Où va ta voix — le chemin au complet</h3>
+    <svg viewBox="0 0 800 150" aria-label="Schéma: oreillette vers boîte Holdfast vers ton PC, aller-retour, sans nuage">
+      <defs>
+        <path id="p1" d="M 130 75 H 350"/><path id="p2" d="M 450 75 H 670"/>
+      </defs>
+      <!-- oreillette -->
+      <g><circle cx="90" cy="70" r="34" fill="none" stroke="#6ab7ff" stroke-width="2"/>
+        <path d="M 78 70 a 12 12 0 0 1 24 0 v 12 a 5 5 0 0 1 -10 0 v -10" fill="none" stroke="#6ab7ff" stroke-width="3" stroke-linecap="round"/>
+        <text x="90" y="128" fill="#98a1ac" font-size="13" text-anchor="middle">Ton oreillette</text></g>
+      <!-- boîte -->
+      <g><rect x="352" y="42" width="96" height="62" rx="10" fill="none" stroke="#f0a83a" stroke-width="2"/>
+        <circle cx="376" cy="73" r="5" fill="#f0a83a"/><rect x="392" y="60" width="42" height="6" rx="3" fill="#f0a83a" opacity=".55"/>
+        <rect x="392" y="74" width="42" height="6" rx="3" fill="#f0a83a" opacity=".35"/>
+        <text x="400" y="128" fill="#f0a83a" font-size="13" text-anchor="middle" font-weight="700">HOLDFAST</text></g>
+      <!-- PC -->
+      <g><rect x="672" y="38" width="80" height="52" rx="6" fill="none" stroke="#7dd06a" stroke-width="2"/>
+        <rect x="700" y="94" width="24" height="6" rx="3" fill="#7dd06a"/>
+        <text x="712" y="52" fill="#7dd06a" font-size="10" font-family="monospace" text-anchor="middle">❯ claude</text>
+        <text x="712" y="128" fill="#98a1ac" font-size="13" text-anchor="middle">Ton PC · ton Claude Code</text></g>
+      <!-- liens -->
+      <use href="#p1" stroke="#2b3442" stroke-width="2"/><use href="#p2" stroke="#2b3442" stroke-width="2"/>
+      <circle r="5" fill="#6ab7ff"><animateMotion dur="2.2s" repeatCount="indefinite"><mpath href="#p1"/></animateMotion></circle>
+      <circle r="5" fill="#7dd06a"><animateMotion dur="2.2s" begin="1.1s" repeatCount="indefinite"><mpath href="#p2"/></animateMotion></circle>
+      <!-- nuage barré -->
+      <g transform="translate(388,0)"><path d="M -18 22 q 0 -10 10 -10 q 3 -8 12 -8 q 10 0 12 9 q 9 1 9 9 q 0 8 -9 8 h -25 q -9 0 -9 -8 z" fill="none" stroke="#ff7a6e" stroke-width="2"/>
+        <line x1="-22" y1="34" x2="30" y2="2" stroke="#ff7a6e" stroke-width="3" stroke-linecap="round"/></g>
+    </svg>
+    <div class="cap">Tunnel chiffré direct entre la boîte et ton PC. <b>Aucun serveur Holdfast au milieu — il n'y en a juste pas.</b></div>
+  </div>
+
+  <div class="demo reveal">
+    <div class="demo-bar"><i class="r"></i><i class="y"></i><i class="g"></i><b>holdfast — essaie-le</b></div>
+    <div class="tabs" id="tabs-fr">
+      <button class="on" onclick="pickTab('fr',0,this)">⌨️ Code</button>
+      <button onclick="pickTab('fr',1,this)">🔧 Métier</button>
+      <button onclick="pickTab('fr',2,this)">🚗 Route</button>
+    </div>
     <div class="demo-body" id="demo-fr"></div>
+    <div class="mic-row">
+      <div class="mic" id="mic-fr" title="Maintiens pour parler">
+        <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>
+      </div>
+      <span class="mic-hint"><b>Maintiens le bouton</b> pour «&nbsp;parler&nbsp;» — relâche pour la réponse.</span>
+      <span class="waves" id="waves-fr"><i></i><i></i><i></i><i></i><i></i></span>
+    </div>
+    <div class="simu-note">Simulation d'interface. La vraie réponse vient de TON Claude, sur TON ordinateur — pas d'un serveur à nous.</div>
   </div>
 
   <section class="reveal">
     <h2>Pour qui?</h2>
     <div class="cards">
       <div class="card"><span class="ico">⌨️</span><b>Le programmeur</b>
-        <p>Ton agent lance les tests, lit l'erreur, corrige — pendant que tu marches, cuisines, décroches de l'écran. Les mains libres, le cerveau branché.</p></div>
+        <p>Ton agent lance les tests, lit l'erreur, propose le correctif — pendant que tu marches, cuisines, décroches de l'écran. Les mains libres, le cerveau branché.</p></div>
       <div class="card"><span class="ico">🔧</span><b>Le gars et la fille de métier</b>
-        <p>Cotes de coupe, fiches techniques, calculs, courriels — répondus dans ton oreille pendant que tes deux mains tiennent l'ouvrage.</p></div>
+        <p>Cotes, fiches techniques, calculs, courriels — répondus dans ton oreille pendant que tes deux mains tiennent l'ouvrage.</p></div>
       <div class="card"><span class="ico">💼</span><b>Le bureau et la route</b>
         <p>Courriels, agenda, notes, recherches — ta maison d'IA te suit dans le char, en réunion, au gym. Ton bureau devient portatif.</p></div>
     </div>
   </section>
 
   <section class="reveal">
-    <h2>Ce que tu reçois</h2>
-    <ul>
-      <li>La boîte montée et testée — image système chiffrée et verrouillée</li>
-      <li>L'oreillette certifiée terrain (le bouton sourdine est un vrai frein d'urgence)</li>
-      <li>La «&nbsp;maison&nbsp;» Claude Code préinstallée : voix, mémoire persistante, garde-fous, hooks — tu bâtis <b>tes</b> tableaux dedans, façon Super Mario Maker</li>
-      <li>Les mises à jour signées</li>
-      <li>Ligne directe avec le fondateur — t'es un des 10</li>
+    <h2>«&nbsp;Je pourrais le bâtir moi-même&nbsp;»</h2>
+    <p style="color:var(--dim);margin-bottom:14px">Oui, tu pourrais — un Pi, une oreillette, un week-end. On a fait ce week-end-là. Puis les six ans d'après. Ce que tu achètes, c'est pas le matériel :</p>
+    <table class="diy">
+      <tr><th>Le problème</th><th>Ce que le lot fondateur t'apporte</th></tr>
+      <tr><td>Trouver une oreillette qui survit au vrai monde (bruit, batterie, boutons utiles)</td><td>Un modèle certifié après plusieurs candidats éliminés sur le terrain — avec le bouton sourdine branché en vrai frein d'urgence</td></tr>
+      <tr><td>Un agent vocal qui fait n'importe quoi sans supervision</td><td>La «&nbsp;maison&nbsp;» : garde-fous, confirmations, mémoire persistante, hooks — six ans d'ajustements déjà faits</td></tr>
+      <tr><td>La boîte plante à 7 h le matin où t'en as besoin</td><td>Gardiens de service qui relancent tout seuls + mises à jour signées</td></tr>
+      <tr><td>Tout refaire quand la carte SD meurt</td><td>Image de récupération incluse — ta boîte se restaure sans nous</td></tr>
+    </table>
+  </section>
+
+  <section class="reveal">
+    <h2>Ce que Holdfast <em style="font-style:normal;color:var(--bad)">n'est pas</em> (encore)</h2>
+    <ul class="not">
+      <li>Pas d'IA «&nbsp;dans&nbsp;» la boîte — c'est une passerelle. Ton PC éteint = elle dort.</li>
+      <li>La vitesse de réponse dépend de ta connexion et de ton ordinateur.</li>
+      <li>Pas d'app léchée avec des ronds qui tournent — c'est un outil de fondateur, brut et franc.</li>
+      <li>Ça prend ton propre abonnement Anthropic : on ne revend pas d'IA, on te donne le volant de la tienne.</li>
+    </ul>
+    <p style="margin-top:14px;color:var(--dim)">Si un de ces points te refroidit — ne dépose pas. On préfère 10 fondateurs qui savent exactement ce qu'ils achètent.</p>
+  </section>
+
+  <section class="reveal">
+    <h2>Après ton dépôt</h2>
+    <ul class="steps">
+      <li><b>Reçu immédiat</b> — Stripe, remboursable en tout temps par un simple courriel.</li>
+      <li><b>Ton rang est figé</b> — premier arrivé, premier monté (ex.&nbsp;: boîte n°&nbsp;4 de 10).</li>
+      <li><b>Le fondateur t'écrit personnellement</b> — prix final et échéancier confirmés AVANT qu'une seule pièce soit commandée. Pas d'accord, pas de solde : remboursé.</li>
     </ul>
   </section>
 
   <section class="reveal">
     <h2>L'histoire, sans vernis</h2>
     <div class="plumber">
-      <p><b>Bâti par un plombier.</b> Pas dans un incubateur : dans un atelier, entre deux
-      quarts de travail, sur six ans d'itérations. La boîte existe. Elle roule tous les
-      jours sur un vrai chantier — et le soir, elle code, elle gère les courriels, elle
-      fait la recherche. On la fait passer de «&nbsp;ma boîte&nbsp;» à «&nbsp;ta boîte&nbsp;».</p>
+      <p><b>Bâti par un plombier.</b> Pas dans un incubateur : dans un atelier, entre deux quarts
+      de travail. La boîte n°&nbsp;0 roule <span class="days" data-days></span> jours d'affilée — le jour elle suit
+      son fondateur au chantier, le soir elle code, gère les courriels, fait la recherche.
+      On la fait passer de «&nbsp;ma boîte&nbsp;» à «&nbsp;ta boîte&nbsp;».</p>
       <p class="quote">«&nbsp;Je suis un plombier un peu bizarre — mais je suis un plombier pareil. On n'a jamais menti.&nbsp;»</p>
     </div>
   </section>
 
   <section class="reveal">
     <h2>La promesse est dans le nom</h2>
-    <p class="promise">Holdfast : «&nbsp;tiens bon&nbsp;». Les gadgets IA infonuagiques meurent
-    quand la compagnie ferme — demande au Humane AI Pin. <b>Si on coule demain matin, ta
-    boîte marche encore</b> : elle roule chez toi.</p>
+    <p class="promise">Holdfast&nbsp;: «&nbsp;tiens bon&nbsp;». Les gadgets IA infonuagiques meurent quand la
+    compagnie ferme — demande au Humane AI Pin. <b>Si on coule demain matin, ta boîte marche encore</b>&nbsp;:
+    elle roule chez toi, image de récupération dans TES mains, zéro DRM, zéro serveur à nous.</p>
   </section>
 
   <section class="reveal faq">
     <h2>Questions franches</h2>
     <dl>
-      <dt>Ça marche où?</dt><dd>Partout où t'as ton oreillette : chantier, bureau, char, maison. La boîte parle à ton ordinateur par internet — cellulaire ou WiFi.</dd>
-      <dt>Quand?</dt><dd>Lot fondateur visé cet automne, si le seuil est atteint.</dd>
-      <dt>C'est quoi, le seuil?</dt><dd>25 dépôts. En dessous, tout le monde est remboursé automatiquement — on ne commande pas une vis avant que le lot soit réel.</dd>
-      <dt>Mes données?</dt><dd>Rien ne passe par nos serveurs. La passerelle parle à ton ordinateur.</dd>
-      <dt>Ça prend quoi?</dt><dd>Un PC/serveur qui roule Claude Code (ou l'envie sérieuse de commencer) et ton abonnement Anthropic. On ne revend pas d'IA — on te donne le volant de la tienne.</dd>
+      <dt>Pourquoi juste 10?</dt><dd>Parce que chaque boîte est montée, flashée et testée à la main par le fondateur, avec une ligne directe après l'achat. 10, c'est ce qu'un humain peut accompagner comme du monde.</dd>
+      <dt>Et si mon PC est éteint?</dt><dd>La boîte dort. Elle pilote TON ordinateur — pas de PC allumé, pas de magie. C'est le prix de la souveraineté.</dd>
+      <dt>Une commande dangereuse à la voix?</dt><dd>Les garde-fous de la maison exigent une confirmation pour les gestes irréversibles — et le bouton sourdine de l'oreillette est un frein d'urgence matériel.</dd>
+      <dt>Mes données?</dt><dd>Ta voix va de l'oreillette à la boîte à ton PC, par tunnel chiffré. Ton agent parle à Anthropic selon TON abonnement — comme quand tu l'utilises au clavier. Rien ne passe par Holdfast : on n'a pas de serveurs à te vendre.</dd>
+      <dt>C'est quoi le seuil?</dt><dd>25 dépôts d'intérêt. En dessous, tout le monde est remboursé automatiquement — on ne commande pas une vis avant que le lot soit réel.</dd>
     </dl>
   </section>
 
   <div class="bigcta reveal">
-    <a class="cta" href="#" onclick="alert('Les dépôts fondateurs ouvrent cette semaine. Reviens dans quelques jours!');return false;">Je veux ma place fondateur</a>
-    <span class="cta-sub">50 $ remboursable en tout temps · 10 places</span>
+    <a class="cta" href="#" onclick="alert('Les dépôts fondateurs ouvrent cette semaine. Reviens dans quelques jours!');return false;">Réserver 1 des 10 — 50&nbsp;$ remboursable</a>
+    <span class="cta-sub">Remboursable en tout temps · <span data-cnt></span></span>
   </div>
 </div>
 </div>
@@ -206,79 +296,137 @@
 <div id="en" class="hide">
 <div class="wrap">
   <div class="hero">
-    <span class="kicker"><span class="dot"></span>Founder batch — 10 units · refundable deposits</span>
-    <h1>HOLDFAST<small>The sovereign voice terminal for your AI.</small></h1>
-    <p class="punch" id="punch-en"></p>
-    <p class="lead">A pocket gateway — hardened Raspberry Pi + field-proven headset —
-    that connects you by voice to the Claude Code running on <b>your</b> machine, at
-    your place. Not a cloud gadget: your PC, your data, your AI.</p>
-    <p class="everywhere">It works where YOU work:
-      <span class="rot" id="rot-en">in your terminal</span></p>
-    <a class="cta" href="#" onclick="alert('Founder deposits open this week. Check back in a few days!');return false;">Hold my founder spot · $50 refundable</a>
-    <span class="cta-sub"><span class="places">10 founder spots</span> · target price $1,100-1,500 USD · refundable anytime, one email, no questions.</span>
+    <span class="slots"><span class="lbl">Founder batch</span><span class="cells" data-cells></span><span class="cnt" data-cnt-en></span></span>
+    <h1>Drive the Claude Code running on <em>your</em> PC — from your headset, <em>anywhere</em>.</h1>
+    <p class="sub">Say “run the tests”: Holdfast carries your voice to your agent at home and reads the
+    result back in your ear. While walking, on site, in the truck. <b>Your voice never touches our servers.</b></p>
+    <div class="chips">
+      <span class="chip">Prototype in daily use for <span class="days" data-days></span> days</span>
+      <span class="chip">0 bytes on Holdfast servers</span>
+      <span class="chip">$50 deposit, refundable by email</span>
+    </div>
+    <a class="cta" href="#" onclick="alert('Founder deposits open this week. Check back in a few days!');return false;">Reserve 1 of 10 — $50 refundable</a>
+    <span class="cta-sub">Refundable anytime, one email, no questions · target price $1,100-1,500 USD, confirmed BEFORE any balance.</span>
   </div>
 
-  <div class="demo">
-    <div class="demo-bar"><i class="r"></i><i class="y"></i><i class="g"></i>
-      <b>holdfast — live session</b><span class="demo-scene" id="scene-en"></span></div>
+  <div class="loopbox reveal">
+    <h3>Where your voice goes — the whole path</h3>
+    <svg viewBox="0 0 800 150" aria-label="Diagram: headset to Holdfast box to your PC, round trip, no cloud">
+      <use href="#loop-shared"/>
+      <defs><path id="q1" d="M 130 75 H 350"/><path id="q2" d="M 450 75 H 670"/></defs>
+      <g><circle cx="90" cy="70" r="34" fill="none" stroke="#6ab7ff" stroke-width="2"/>
+        <path d="M 78 70 a 12 12 0 0 1 24 0 v 12 a 5 5 0 0 1 -10 0 v -10" fill="none" stroke="#6ab7ff" stroke-width="3" stroke-linecap="round"/>
+        <text x="90" y="128" fill="#98a1ac" font-size="13" text-anchor="middle">Your headset</text></g>
+      <g><rect x="352" y="42" width="96" height="62" rx="10" fill="none" stroke="#f0a83a" stroke-width="2"/>
+        <circle cx="376" cy="73" r="5" fill="#f0a83a"/><rect x="392" y="60" width="42" height="6" rx="3" fill="#f0a83a" opacity=".55"/>
+        <rect x="392" y="74" width="42" height="6" rx="3" fill="#f0a83a" opacity=".35"/>
+        <text x="400" y="128" fill="#f0a83a" font-size="13" text-anchor="middle" font-weight="700">HOLDFAST</text></g>
+      <g><rect x="672" y="38" width="80" height="52" rx="6" fill="none" stroke="#7dd06a" stroke-width="2"/>
+        <rect x="700" y="94" width="24" height="6" rx="3" fill="#7dd06a"/>
+        <text x="712" y="52" fill="#7dd06a" font-size="10" font-family="monospace" text-anchor="middle">❯ claude</text>
+        <text x="712" y="128" fill="#98a1ac" font-size="13" text-anchor="middle">Your PC · your Claude Code</text></g>
+      <use href="#q1" stroke="#2b3442" stroke-width="2"/><use href="#q2" stroke="#2b3442" stroke-width="2"/>
+      <circle r="5" fill="#6ab7ff"><animateMotion dur="2.2s" repeatCount="indefinite"><mpath href="#q1"/></animateMotion></circle>
+      <circle r="5" fill="#7dd06a"><animateMotion dur="2.2s" begin="1.1s" repeatCount="indefinite"><mpath href="#q2"/></animateMotion></circle>
+      <g transform="translate(388,0)"><path d="M -18 22 q 0 -10 10 -10 q 3 -8 12 -8 q 10 0 12 9 q 9 1 9 9 q 0 8 -9 8 h -25 q -9 0 -9 -8 z" fill="none" stroke="#ff7a6e" stroke-width="2"/>
+        <line x1="-22" y1="34" x2="30" y2="2" stroke="#ff7a6e" stroke-width="3" stroke-linecap="round"/></g>
+    </svg>
+    <div class="cap">Direct encrypted tunnel between the box and your PC. <b>No Holdfast server in the middle — there isn't one.</b></div>
+  </div>
+
+  <div class="demo reveal">
+    <div class="demo-bar"><i class="r"></i><i class="y"></i><i class="g"></i><b>holdfast — try it</b></div>
+    <div class="tabs" id="tabs-en">
+      <button class="on" onclick="pickTab('en',0,this)">⌨️ Code</button>
+      <button onclick="pickTab('en',1,this)">🔧 Trade</button>
+      <button onclick="pickTab('en',2,this)">🚗 Road</button>
+    </div>
     <div class="demo-body" id="demo-en"></div>
+    <div class="mic-row">
+      <div class="mic" id="mic-en" title="Hold to talk">
+        <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>
+      </div>
+      <span class="mic-hint"><b>Hold the button</b> to “talk” — release for the answer.</span>
+      <span class="waves" id="waves-en"><i></i><i></i><i></i><i></i><i></i></span>
+    </div>
+    <div class="simu-note">Interface simulation. The real answer comes from YOUR Claude, on YOUR computer — not from a server of ours.</div>
   </div>
 
   <section class="reveal">
     <h2>Who is it for?</h2>
     <div class="cards">
       <div class="card"><span class="ico">⌨️</span><b>The programmer</b>
-        <p>Your agent runs the tests, reads the error, ships the fix — while you walk, cook, step away from the screen. Hands free, brain plugged in.</p></div>
+        <p>Your agent runs the tests, reads the error, proposes the fix — while you walk, cook, step away from the screen. Hands free, brain plugged in.</p></div>
       <div class="card"><span class="ico">🔧</span><b>The tradesperson</b>
-        <p>Cut lengths, spec sheets, calculations, emails — answered in your ear while both hands hold the work.</p></div>
+        <p>Dimensions, spec sheets, calculations, emails — answered in your ear while both hands hold the work.</p></div>
       <div class="card"><span class="ico">💼</span><b>The office & the road</b>
-        <p>Email, calendar, notes, research — your AI home follows you in the truck, in meetings, at the gym. Your desk goes portable.</p></div>
+        <p>Email, calendar, notes, research — your AI home follows you in the truck, in meetings, at the gym.</p></div>
     </div>
   </section>
 
   <section class="reveal">
-    <h2>What you get</h2>
-    <ul>
-      <li>The box, assembled and tested — encrypted, locked system image</li>
-      <li>The field-certified headset (the mute button is a real emergency brake)</li>
-      <li>The Claude Code “home” pre-installed: voice, persistent memory, guardrails, hooks — you build <b>your</b> levels in it, Super Mario Maker style</li>
-      <li>Signed updates</li>
-      <li>A direct line to the founder — you're one of 10</li>
+    <h2>“I could build this myself”</h2>
+    <p style="color:var(--dim);margin-bottom:14px">You could — a Pi, a headset, one weekend. We did that weekend. Then the six years after it. What you're buying isn't the hardware:</p>
+    <table class="diy">
+      <tr><th>The problem</th><th>What the founder batch gives you</th></tr>
+      <tr><td>Finding a headset that survives the real world (noise, battery, useful buttons)</td><td>A model certified after several candidates were eliminated in the field — mute button wired as a real emergency brake</td></tr>
+      <tr><td>A voice agent doing whatever it wants unsupervised</td><td>The “home”: guardrails, confirmations, persistent memory, hooks — six years of tuning already done</td></tr>
+      <tr><td>The box crashing at 7 a.m. the day you need it</td><td>Watchdog services that restart everything on their own + signed updates</td></tr>
+      <tr><td>Rebuilding everything when the SD card dies</td><td>Recovery image included — your box restores without us</td></tr>
+    </table>
+  </section>
+
+  <section class="reveal">
+    <h2>What Holdfast <em style="font-style:normal;color:var(--bad)">is not</em> (yet)</h2>
+    <ul class="not">
+      <li>No AI “inside” the box — it's a gateway. PC off = it sleeps.</li>
+      <li>Response speed depends on your connection and your computer.</li>
+      <li>No polished app with spinning circles — it's a founder's tool, raw and honest.</li>
+      <li>You need your own Anthropic subscription: we don't resell AI, we hand you the wheel of yours.</li>
+    </ul>
+    <p style="margin-top:14px;color:var(--dim)">If any of these cools you off — don't deposit. We'd rather have 10 founders who know exactly what they're buying.</p>
+  </section>
+
+  <section class="reveal">
+    <h2>After your deposit</h2>
+    <ul class="steps">
+      <li><b>Immediate receipt</b> — Stripe, refundable anytime with a single email.</li>
+      <li><b>Your rank is locked</b> — first come, first built (e.g. box #4 of 10).</li>
+      <li><b>The founder writes you personally</b> — final price and timeline confirmed BEFORE a single part is ordered. No agreement, no balance: refunded.</li>
     </ul>
   </section>
 
   <section class="reveal">
     <h2>The story, no varnish</h2>
     <div class="plumber">
-      <p><b>Built by a plumber.</b> Not in an incubator — in a workshop, between shifts,
-      over six years of iteration. The box exists. It runs every day on a real job site —
-      and at night it codes, handles email, does research. We're taking it from “my box”
-      to “your box”.</p>
+      <p><b>Built by a plumber.</b> Not in an incubator — in a workshop, between shifts. Box #0 has
+      been running for <span class="days" data-days></span> straight days — by day it follows its founder to the job
+      site, by night it codes, handles email, does research. We're taking it from “my box” to “your box”.</p>
       <p class="quote">“I'm a bit of a weird plumber — but I'm a plumber all the same. We never lied.”</p>
     </div>
   </section>
 
   <section class="reveal">
     <h2>The promise is in the name</h2>
-    <p class="promise">Holdfast. Cloud AI gadgets die when the company does — ask the
-    Humane AI Pin. <b>If we sink tomorrow morning, your box still works</b>: it runs at
-    your place.</p>
+    <p class="promise">Holdfast. Cloud AI gadgets die when the company does — ask the Humane AI Pin.
+    <b>If we sink tomorrow morning, your box still works</b>: it runs at your place, recovery image in
+    YOUR hands, zero DRM, zero servers of ours.</p>
   </section>
 
   <section class="reveal faq">
     <h2>Straight answers</h2>
     <dl>
-      <dt>Where does it work?</dt><dd>Anywhere you wear the headset: job site, office, truck, home. The box reaches your computer over the internet — cellular or WiFi.</dd>
-      <dt>When?</dt><dd>Founder batch targeted this fall, if the threshold is met.</dd>
-      <dt>What threshold?</dt><dd>25 deposits. Below that, everyone is refunded automatically — we don't order a single screw before the batch is real.</dd>
-      <dt>My data?</dt><dd>Nothing goes through our servers. The gateway talks to your computer.</dd>
-      <dt>What do I need?</dt><dd>A PC/server running Claude Code (or the serious itch to start) and your own Anthropic subscription. We don't resell AI — we hand you the wheel of yours.</dd>
+      <dt>Why only 10?</dt><dd>Because every box is assembled, flashed and tested by hand by the founder, with a direct line after purchase. 10 is what one human can properly stand behind.</dd>
+      <dt>What if my PC is off?</dt><dd>The box sleeps. It drives YOUR computer — no PC on, no magic. That's the price of sovereignty.</dd>
+      <dt>A dangerous command by voice?</dt><dd>The home's guardrails require confirmation for irreversible actions — and the headset's mute button is a hardware emergency brake.</dd>
+      <dt>My data?</dt><dd>Your voice goes headset → box → your PC through an encrypted tunnel. Your agent talks to Anthropic under YOUR subscription — same as when you type. Nothing goes through Holdfast: we have no servers to sell you.</dd>
+      <dt>What's the threshold?</dt><dd>25 interest deposits. Below that, everyone is refunded automatically — we don't order a single screw before the batch is real.</dd>
     </dl>
   </section>
 
   <div class="bigcta reveal">
-    <a class="cta" href="#" onclick="alert('Founder deposits open this week. Check back in a few days!');return false;">I want my founder spot</a>
-    <span class="cta-sub">$50 refundable anytime · 10 spots</span>
+    <a class="cta" href="#" onclick="alert('Founder deposits open this week. Check back in a few days!');return false;">Reserve 1 of 10 — $50 refundable</a>
+    <span class="cta-sub">Refundable anytime · <span data-cnt-en></span></span>
   </div>
 </div>
 </div>
@@ -289,7 +437,25 @@
 </div></footer>
 
 <script>
-/* ---------- langue ---------- */
+/* ====== RÉGLAGES HONNÊTES — à éditer À LA MAIN à chaque déploiement ====== */
+const DEPOSITS_CONFIRMED = 0;              // dépôts réellement reçus (jamais auto)
+const DEPOSITS_UPDATED   = "2026-09-08";   // date de mise à jour du compteur
+const BOX0_IN_SERVICE    = "2026-04-21";   // mise en service de la boîte n°0 (prototype py0)
+
+/* compteur de jours de service — calculé en direct, vérifiable */
+const days = Math.max(1, Math.floor((Date.now() - new Date(BOX0_IN_SERVICE)) / 864e5));
+document.querySelectorAll('[data-days]').forEach(e => e.textContent = days);
+
+/* registre des 10 places */
+document.querySelectorAll('[data-cells]').forEach(el=>{
+  el.innerHTML = Array.from({length:10},(_,i)=>`<span class="c ${i<DEPOSITS_CONFIRMED?'full':''}"></span>`).join('');
+});
+document.querySelectorAll('[data-cnt]').forEach(e=> e.textContent =
+  `${DEPOSITS_CONFIRMED}/10 dépôts confirmés — mis à jour le ${DEPOSITS_UPDATED}`);
+document.querySelectorAll('[data-cnt-en]').forEach(e=> e.textContent =
+  `${DEPOSITS_CONFIRMED}/10 confirmed deposits — updated ${DEPOSITS_UPDATED}`);
+
+/* ====== langue ====== */
 function setLang(l){
   for(const id of ['fr','en']){
     document.getElementById(id).classList.toggle('hide', l!==id);
@@ -297,111 +463,86 @@ function setLang(l){
     document.getElementById('btn-'+id).classList.toggle('on', l===id);
   }
   document.documentElement.lang = l;
-  startPunch(l); startRot(l); startDemo(l); observeReveals();
+  playScene(l, 0); observeReveals();
 }
 
-/* ---------- punch mot par mot ---------- */
-const PUNCH = {
-  fr: ["Ton ordinateur.","Ton IA.","Dans ton oreille.","Partout."],
-  en: ["Your computer.","Your AI.","In your ear.","Anywhere."]
-};
-function startPunch(l){
-  const el = document.getElementById('punch-'+l); if(!el) return;
-  el.innerHTML = PUNCH[l].map((w,i)=>`<span class="w" style="animation-delay:${.3+i*.45}s">${w}&nbsp;</span>`).join('');
-}
-
-/* ---------- rotation "où tu travailles" ---------- */
-const ROT = {
-  fr: ["dans ton terminal","sur le chantier","au bureau","dans ton char","à l'atelier","à la pêche"],
-  en: ["in your terminal","on the job site","at the office","in your truck","in the workshop","gone fishing"]
-};
-let rotTimers = {};
-function startRot(l){
-  clearInterval(rotTimers[l]);
-  const el = document.getElementById('rot-'+l); if(!el) return;
-  let i = 0;
-  rotTimers[l] = setInterval(()=>{ i=(i+1)%ROT[l].length;
-    el.style.opacity=0;
-    setTimeout(()=>{el.textContent=ROT[l][i]; el.style.opacity=1;},220);
-  }, 2200);
-  el.style.transition='opacity .2s';
-}
-
-/* ---------- LA DÉMO : 3 scénarios en rotation ---------- */
+/* ====== démo à onglets + micro pressable ====== */
 const SCENES = {
  fr: [
-  {tag:"scénario 1/3 — le programmeur", lines:[
-    ["voice","« Claude, lance les tests du module de facturation. »"],
-    ["act","…l'agent travaille sur TON ordinateur, à la maison…"],
-    ["ai","42 tests. 41 passent. `test_taxes_quebec` échoue — arrondi à la 2e décimale."],
-    ["voice","« Corrige-le pis relance. »"],
-    ["ai","Corrigé, 42/42 verts. Commit prêt pour ta revue."]]},
-  {tag:"scénario 2/3 — le chantier", lines:[
-    ["voice","« C'est quoi ma coupe : 2 pouces, un 90 pis un té, 38 et quart centre-à-centre? »"],
-    ["act","…take-out réels du catalogue, engagement des filets compté…"],
-    ["ai","Coupe à 35 pouces et quart, pile. Take-out : 1½ le 90, 1½ le té."],
-    ["voice","« Parfait, je coupe. »"]]},
-  {tag:"scénario 3/3 — la route", lines:[
-    ["voice","« Lis-moi le courriel du client pendant que je conduis. »"],
-    ["ai","Réponse de Clément : il veut le rapport vendredi, il ajoute 2 étages au projet."],
-    ["voice","« Réponds que vendredi c'est bon, pis mets-le dans mon agenda. »"],
-    ["ai","Brouillon prêt — je te le relis avant d'envoyer. Agenda : vendredi 9 h, bloqué."]]}
+  [["voice","« Claude, lance les tests du module de facturation. »"],
+   ["act","…ton agent travaille sur TON ordinateur, à la maison…"],
+   ["ai","42 tests. 41 passent. `test_taxes_quebec` échoue — arrondi à la 2e décimale."],
+   ["voice","« Corrige-le pis relance. »"],
+   ["ai","Corrigé — 42/42 verts. Commit prêt pour ta revue."]],
+  [["voice","« C'est quoi ma coupe : 2 pouces, un 90 pis un té, 38 et quart centre-à-centre? »"],
+   ["act","…take-out réels du catalogue, engagement des filets compté…"],
+   ["ai","Coupe à 35 pouces et quart, pile. Take-out : 1½ le 90, 1½ le té."],
+   ["voice","« Parfait, je coupe. »"]],
+  [["voice","« Lis-moi le courriel du client pendant que je conduis. »"],
+   ["ai","Réponse du client : il veut le rapport vendredi, il ajoute 2 étages au projet."],
+   ["voice","« Réponds que vendredi c'est bon, pis mets-le dans mon agenda. »"],
+   ["ai","Brouillon prêt — je te le relis avant d'envoyer. Agenda : vendredi 9 h, bloqué."]]
  ],
  en: [
-  {tag:"scene 1/3 — the programmer", lines:[
-    ["voice","“Claude, run the billing module tests.”"],
-    ["act","…the agent works on YOUR machine, back home…"],
-    ["ai","42 tests. 41 pass. `test_quebec_taxes` fails — 2nd-decimal rounding."],
-    ["voice","“Fix it and re-run.”"],
-    ["ai","Fixed — 42/42 green. Commit ready for your review."]]},
-  {tag:"scene 2/3 — the job site", lines:[
-    ["voice","“What's my cut: 2-inch, a 90 and a tee, 38¼ center-to-center?”"],
-    ["act","…real catalog take-outs, thread engagement included…"],
-    ["ai","Cut at 35¼, dead on. Take-outs: 1½ for the 90, 1½ for the tee."],
-    ["voice","“Perfect, cutting now.”"]]},
-  {tag:"scene 3/3 — the road", lines:[
-    ["voice","“Read me the client's email while I drive.”"],
-    ["ai","Reply from Clement: report due Friday, he's adding 2 floors to the project."],
-    ["voice","“Tell him Friday works, and put it in my calendar.”"],
-    ["ai","Draft ready — I'll read it back before sending. Calendar: Friday 9 a.m., booked."]]}
+  [["voice","“Claude, run the billing module tests.”"],
+   ["act","…your agent works on YOUR machine, back home…"],
+   ["ai","42 tests. 41 pass. `test_quebec_taxes` fails — 2nd-decimal rounding."],
+   ["voice","“Fix it and re-run.”"],
+   ["ai","Fixed — 42/42 green. Commit ready for your review."]],
+  [["voice","“What's my cut: 2-inch, a 90 and a tee, 38¼ center-to-center?”"],
+   ["act","…real catalog take-outs, thread engagement included…"],
+   ["ai","Cut at 35¼, dead on. Take-outs: 1½ for the 90, 1½ for the tee."],
+   ["voice","“Perfect, cutting now.”"]],
+  [["voice","“Read me the client's email while I drive.”"],
+   ["ai","Client's reply: report due Friday, he's adding 2 floors to the project."],
+   ["voice","“Tell him Friday works, and put it in my calendar.”"],
+   ["ai","Draft ready — I'll read it back before sending. Calendar: Friday 9 a.m., booked."]]
  ]
 };
-let demoTimers = {};
-function startDemo(l){
-  (demoTimers[l]||[]).forEach(clearTimeout); demoTimers[l]=[];
-  const body = document.getElementById('demo-'+l);
-  const scene = document.getElementById('scene-'+l);
-  if(!body) return;
-  let s = 0;
-  function play(){
-    const sc = SCENES[l][s];
-    scene.textContent = sc.tag;
-    body.innerHTML = '';
-    let t = 400;
-    sc.lines.forEach(([cls,txt])=>{
-      demoTimers[l].push(setTimeout(()=>{
-        const d = document.createElement('div');
-        d.className = cls; d.innerHTML = txt + (cls==='ai' ? ' <span class="cursor"></span>' : '');
-        body.querySelectorAll('.cursor').forEach(c=>c.remove());
-        body.appendChild(d);
-      }, t));
-      t += (cls==='act') ? 1300 : 2100;
-    });
-    demoTimers[l].push(setTimeout(()=>{ s=(s+1)%SCENES[l].length; play(); }, t+2600));
-  }
-  play();
+let timers = {fr:[], en:[]}, current = {fr:0, en:0};
+function playScene(l, idx){
+  timers[l].forEach(clearTimeout); timers[l]=[]; current[l]=idx;
+  const body = document.getElementById('demo-'+l); if(!body) return;
+  body.innerHTML=''; let t=250;
+  SCENES[l][idx].forEach(([cls,txt])=>{
+    timers[l].push(setTimeout(()=>{
+      const d=document.createElement('div'); d.className=cls;
+      d.innerHTML = txt + (cls==='ai' ? ' <span class="cursor"></span>' : '');
+      body.querySelectorAll('.cursor').forEach(c=>c.remove());
+      body.appendChild(d);
+    }, t));
+    t += (cls==='act')?1200:2000;
+  });
+}
+function pickTab(l, idx, btn){
+  document.querySelectorAll('#tabs-'+l+' button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); playScene(l, idx);
 }
 
-/* ---------- reveal au défilement ---------- */
+/* micro pressable — maintiens pour "parler", relâche = la scène rejoue */
+for(const l of ['fr','en']){
+  const mic=document.getElementById('mic-'+l), w=document.getElementById('waves-'+l);
+  if(!mic) continue;
+  const down=e=>{e.preventDefault(); mic.classList.add('hot'); w.classList.add('on');
+    const body=document.getElementById('demo-'+l); body.innerHTML=
+      '<div class="act" style="animation:none;opacity:1">'+(l==='fr'?'écoute…':'listening…')+'</div>';};
+  const up=()=>{ if(!mic.classList.contains('hot')) return;
+    mic.classList.remove('hot'); w.classList.remove('on'); playScene(l, current[l]); };
+  mic.addEventListener('pointerdown', down);
+  mic.addEventListener('pointerup', up);
+  mic.addEventListener('pointercancel', up);
+  mic.addEventListener('pointerleave', up);
+}
+
+/* reveal au défilement */
 function observeReveals(){
-  const io = new IntersectionObserver(es=>es.forEach(e=>{
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
     if(e.isIntersecting){e.target.classList.add('in'); io.unobserve(e.target);}
-  }),{threshold:.12});
+  }),{threshold:.1});
   document.querySelectorAll('.reveal:not(.in)').forEach(el=>io.observe(el));
 }
 
-const initial = (navigator.language||'').toLowerCase().startsWith('fr') ? 'fr' : 'en';
-setLang(initial);
+setLang((navigator.language||'').toLowerCase().startsWith('fr') ? 'fr' : 'en');
 </script>
 </body>
 </html>
