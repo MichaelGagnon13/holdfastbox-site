@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HOLDFAST — le terminal vocal souverain pour ton Claude Code</title>
+<meta name="description" content="Ton ordinateur. Ta maison d'IA. Dans ton oreille. Partout. Passerelle vocale souveraine pour Claude Code — bâtie par un plombier.">
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b23; --ink:#e8e6e1; --dim:#9aa3ad;
+    --accent:#e8a33d; --accent-ink:#1a1408; --line:#242b35; --ok:#7dbf6a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px}
+  header{padding:18px 0;border-bottom:1px solid var(--line)}
+  .topbar{display:flex;justify-content:space-between;align-items:center}
+  .brand{font-weight:800;letter-spacing:.12em;font-size:1.05rem}
+  .brand span{color:var(--accent)}
+  .lang button{background:none;border:1px solid var(--line);color:var(--dim);
+    padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.85rem}
+  .lang button.on{color:var(--accent);border-color:var(--accent)}
+  .hero{padding:64px 0 40px}
+  h1{font-size:2.6rem;line-height:1.1;letter-spacing:.04em;font-weight:800}
+  h1 small{display:block;font-size:1.15rem;color:var(--accent);margin-top:14px;
+    font-weight:600;letter-spacing:0}
+  .punch{margin:26px 0 8px;font-size:1.25rem;font-weight:700}
+  .hero p.lead{color:var(--dim);margin-top:14px}
+  .cta{display:inline-block;margin:34px 0 8px;background:var(--accent);
+    color:var(--accent-ink);font-weight:800;padding:16px 26px;border-radius:10px;
+    text-decoration:none;font-size:1.05rem}
+  .cta:hover{filter:brightness(1.08)}
+  .cta-sub{display:block;color:var(--dim);font-size:.85rem;margin-top:10px}
+  section{padding:34px 0;border-top:1px solid var(--line)}
+  h2{font-size:1.35rem;margin-bottom:16px;letter-spacing:.02em}
+  ul{list-style:none}
+  ul li{padding:9px 0 9px 30px;position:relative;color:var(--ink)}
+  ul li::before{content:"▸";position:absolute;left:6px;color:var(--accent)}
+  .plumber{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:24px;margin-top:8px}
+  .plumber b{color:var(--accent)}
+  .promise{font-size:1.1rem}
+  .promise b{color:var(--ok)}
+  .faq dt{font-weight:700;margin-top:18px}
+  .faq dd{color:var(--dim);margin-top:4px}
+  footer{padding:40px 0 60px;color:var(--dim);font-size:.85rem;border-top:1px solid var(--line)}
+  .hide{display:none}
+  @media(max-width:520px){h1{font-size:2rem}}
+</style>
+</head>
+<body>
+<header><div class="wrap topbar">
+  <div class="brand">HOLD<span>FAST</span></div>
+  <div class="lang">
+    <button id="btn-fr" class="on" onclick="setLang('fr')">FR</button>
+    <button id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+</div></header>
+
+<!-- ============================= FR ============================= -->
+<div id="fr">
+<div class="wrap">
+  <div class="hero">
+    <h1>HOLDFAST<small>Le terminal vocal souverain pour ton Claude Code.</small></h1>
+    <p class="punch">Ton ordinateur. Ta maison d'IA. Dans ton oreille. Partout.</p>
+    <p class="lead">Holdfast est une passerelle de poche — Raspberry Pi durci +
+    oreillette éprouvée au chantier — qui te connecte à voix haute au Claude Code
+    qui roule sur <b>ton</b> ordinateur, chez toi. Pas un gadget infonuagique de
+    plus : ton PC, tes données, ta maison d'IA. Elle te suit au garage, au
+    chantier, à la pêche.</p>
+    <a class="cta" href="#" onclick="alert('Les dépôts fondateurs ouvrent cette semaine. Reviens dans quelques jours!');return false;">Réserver ma place fondateur · 50&nbsp;$ remboursable</a>
+    <span class="cta-sub">Lot fondateur ~10 unités · prix final visé 1&nbsp;500-2&nbsp;000&nbsp;$&nbsp;CA ·
+    remboursable en tout temps, un courriel, sans question.</span>
+  </div>
+
+  <section class="plumber">
+    <p><b>Bâti par un plombier.</b> Pas dans un incubateur : dans un atelier,
+    entre deux quarts de travail, sur six ans d'itérations. La boîte existe.
+    Elle roule tous les jours sur un vrai chantier. On la fait passer de
+    «&nbsp;ma boîte&nbsp;» à «&nbsp;ta boîte&nbsp;».</p>
+  </section>
+
+  <section>
+    <h2>Ce que tu reçois</h2>
+    <ul>
+      <li>La boîte montée et testée — image système chiffrée et verrouillée</li>
+      <li>L'oreillette certifiée terrain (le bouton sourdine est un vrai frein d'urgence)</li>
+      <li>La «&nbsp;maison&nbsp;» Claude Code préinstallée : voix, mémoire persistante,
+          garde-fous, hooks — tu bâtis <b>tes</b> tableaux dedans, façon Super Mario Maker</li>
+      <li>Les mises à jour signées</li>
+      <li>Ligne directe avec le fondateur — t'es un des 10</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ce que ça prend de ton bord</h2>
+    <ul>
+      <li>Un PC ou serveur à la maison qui roule Claude Code (ou l'envie sérieuse de t'y mettre)</li>
+      <li>Ton propre abonnement Anthropic — on ne revend pas de l'IA, on te donne le <b>volant</b> de la tienne</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>La promesse est dans le nom</h2>
+    <p class="promise">Holdfast : «&nbsp;tiens bon&nbsp;». Les gadgets IA infonuagiques
+    meurent quand la compagnie ferme — demande au Humane AI Pin. <b>Si on coule
+    demain matin, ta boîte marche encore</b> : elle roule chez toi.</p>
+  </section>
+
+  <section class="faq">
+    <h2>Questions franches</h2>
+    <dl>
+      <dt>Quand?</dt><dd>Lot fondateur visé cet automne, si le seuil est atteint.</dd>
+      <dt>C'est quoi, le seuil?</dt><dd>25 dépôts. En dessous, tout le monde est
+      remboursé automatiquement — on ne commande pas une vis avant que le lot soit réel.</dd>
+      <dt>Mes données?</dt><dd>Rien ne passe par nos serveurs. La passerelle parle à ton ordinateur.</dd>
+      <dt>Le code?</dt><dd>La maison est à toi, sur ta machine. L'image système est
+      signée et chiffrée — comme une console.</dd>
+    </dl>
+  </section>
+</div>
+</div>
+
+<!-- ============================= EN ============================= -->
+<div id="en" class="hide">
+<div class="wrap">
+  <div class="hero">
+    <h1>HOLDFAST<small>The sovereign voice terminal for your Claude Code.</small></h1>
+    <p class="punch">Your computer. Your AI home. In your ear. Anywhere.</p>
+    <p class="lead">Holdfast is a pocket gateway — hardened Raspberry Pi +
+    field-proven headset — that connects you by voice to the Claude Code running
+    on <b>your</b> machine, at your place. Not another cloud gadget: your PC,
+    your data, your AI home. It follows you to the garage, the job site, the
+    fishing spot.</p>
+    <a class="cta" href="#" onclick="alert('Founder deposits open this week. Check back in a few days!');return false;">Hold my founder spot · $50 refundable</a>
+    <span class="cta-sub">Founder batch ~10 units · target price $1,100-1,500 USD ·
+    refundable anytime, one email, no questions.</span>
+  </div>
+
+  <section class="plumber">
+    <p><b>Built by a plumber.</b> Not in an incubator — in a workshop, between
+    shifts, over six years of iteration. The box exists. It runs every day on a
+    real job site. We're taking it from “my box” to “your box”.</p>
+  </section>
+
+  <section>
+    <h2>What you get</h2>
+    <ul>
+      <li>The box, assembled and tested — encrypted, locked system image</li>
+      <li>The field-certified headset (the mute button is a real emergency brake)</li>
+      <li>The Claude Code “home” pre-installed: voice, persistent memory,
+          guardrails, hooks — you build <b>your</b> levels in it, Super Mario Maker style</li>
+      <li>Signed updates</li>
+      <li>A direct line to the founder — you're one of 10</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>What you need on your end</h2>
+    <ul>
+      <li>A PC or server at home running Claude Code (or the serious itch to start)</li>
+      <li>Your own Anthropic subscription — we don't resell AI, we hand you the <b>wheel</b> of yours</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>The promise is in the name</h2>
+    <p class="promise">Holdfast. Cloud AI gadgets die when the company does —
+    ask the Humane AI Pin. <b>If we sink tomorrow morning, your box still
+    works</b>: it runs at your place.</p>
+  </section>
+
+  <section class="faq">
+    <h2>Straight answers</h2>
+    <dl>
+      <dt>When?</dt><dd>Founder batch targeted this fall, if the threshold is met.</dd>
+      <dt>What threshold?</dt><dd>25 deposits. Below that, everyone is refunded
+      automatically — we don't order a single screw before the batch is real.</dd>
+      <dt>My data?</dt><dd>Nothing goes through our servers. The gateway talks to your computer.</dd>
+      <dt>The code?</dt><dd>The home is yours, on your machine. The system image is
+      signed and encrypted — console-style.</dd>
+    </dl>
+  </section>
+</div>
+</div>
+
+<footer><div class="wrap">
+  <span id="foot-fr">HOLDFAST — Québec, Canada. Dépôts remboursables en tout temps.</span>
+  <span id="foot-en" class="hide">HOLDFAST — Québec, Canada. Deposits refundable anytime.</span>
+</div></footer>
+
+<script>
+function setLang(l){
+  document.getElementById('fr').classList.toggle('hide', l!=='fr');
+  document.getElementById('en').classList.toggle('hide', l!=='en');
+  document.getElementById('foot-fr').classList.toggle('hide', l!=='fr');
+  document.getElementById('foot-en').classList.toggle('hide', l!=='en');
+  document.getElementById('btn-fr').classList.toggle('on', l==='fr');
+  document.getElementById('btn-en').classList.toggle('on', l==='en');
+  document.documentElement.lang = l;
+}
+// anglophone par défaut si le navigateur n'est pas français
+if(!(navigator.language||'').toLowerCase().startsWith('fr')) setLang('en');
+</script>
+</body>
+</html>
