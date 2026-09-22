@@ -60,7 +60,7 @@ for (const s of D.segs){
 }
 // Michael 22 sept. : « je ne vois pas le tuyau, il est caché par ton écriture » → étiquette DÉCALÉE à côté du tuyau
 // (perpendiculaire au tronçon) + ligne de rappel fine jusqu'au tuyau.
-const OFF = {d:[7,0,0], u:[7,0,0], r:[0,7,0], l:[0,7,0], f:[0,7,0], b:[0,7,0]};
+const OFF = {d:[10,0,0], u:[10,0,0], r:[0,10,0], l:[0,10,0], f:[0,10,0], b:[0,10,0]};   // Michael : « décale un peu plus »
 function decale(p, d, k){ const o = OFF[d] || [7,0,0]; return [p[0]+o[0]*k, p[1]+o[1]*k, p[2]+o[2]*k]; }
 function rappel(p, q, color){
   const g = new THREE.BufferGeometry().setFromPoints([v(p), v(q)]);
