@@ -23,7 +23,7 @@
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-const D = {"segs": [{"type": "pipe", "a": [0.0, 0.0, 0.0], "b": [0.0, 2.5161290322580645, 0.0], "cls": "nipple"}, {"type": "valve", "a": [0.0, 2.5161290322580645, 0.0], "b": [0.0, 5.241935483870968, 0.0]}, {"type": "pipe", "a": [0.0, 5.241935483870968, 0.0], "b": [0.0, 6.5, 0.0], "cls": "nipple"}, {"type": "elbow", "a": [0.0, 6.5, 0.0]}, {"type": "pipe", "a": [0.0, 6.5, 0.0], "b": [14.125, 6.5, 0.0], "cls": "coupe"}, {"type": "elbow", "a": [14.125, 6.5, 0.0]}, {"type": "pipe", "a": [14.125, 6.5, 0.0], "b": [14.125, 6.5, 17.98155737704918], "cls": "coupe"}, {"type": "union", "a": [14.125, 6.5, 17.98155737704918], "b": [14.125, 6.5, 20.352751756440284]}, {"type": "pipe", "a": [14.125, 6.5, 20.352751756440284], "b": [14.125, 6.5, 38.33430913348947], "cls": "coupe"}, {"type": "te", "a": [14.125, 6.5, 38.33430913348947], "b": [14.125, 2.5, 38.33430913348947]}, {"type": "pipe", "a": [14.125, 6.5, 38.33430913348947], "b": [14.125, 6.5, 56.250000000000014], "cls": "coupe"}, {"type": "elbow", "a": [14.125, 6.5, 56.250000000000014]}, {"type": "pipe", "a": [14.125, 6.5, 56.250000000000014], "b": [16.625, 6.5, 56.250000000000014], "cls": "nipple"}, {"type": "elbow", "a": [16.625, 6.5, 56.250000000000014]}], "labels": [{"p": [0.0, 0.0, 0.0], "t": "FACE", "kind": "end"}, {"p": [0.0, 1.2580645161290323, 0.0], "t": "1", "sub": "3", "kind": "pipe", "cls": "nipple"}, {"p": [0.0, 3.879032258064516, 0.0], "t": "V", "kind": "valve"}, {"p": [0.0, 5.870967741935484, 0.0], "t": "2", "sub": "1 1/2", "kind": "pipe", "cls": "nipple"}, {"p": [0.0, 6.5, 0.0], "t": "90", "kind": "end"}, {"p": [7.0625, 6.5, 0.0], "t": "3", "sub": "12", "kind": "pipe", "cls": "coupe"}, {"p": [14.125, 6.5, 0.0], "t": "90", "kind": "end"}, {"p": [14.125, 6.5, 8.99077868852459], "t": "4", "sub": "17 1/16", "kind": "pipe", "cls": "coupe"}, {"p": [14.125, 6.5, 19.167154566744735], "t": "U", "kind": "union"}, {"p": [14.125, 6.5, 29.343530444964877], "t": "5", "sub": "17 1/16", "kind": "pipe", "cls": "coupe"}, {"p": [14.125, 1.5, 38.33430913348947], "t": "drip", "kind": "te"}, {"p": [14.125, 6.5, 47.29215456674474], "t": "6", "sub": "17", "kind": "pipe", "cls": "coupe"}, {"p": [14.125, 6.5, 56.250000000000014], "t": "90", "kind": "end"}, {"p": [15.375, 6.5, 56.250000000000014], "t": "7", "sub": "2", "kind": "pipe", "cls": "nipple"}, {"p": [16.625, 6.5, 56.250000000000014], "t": "90", "kind": "end"}], "titre": "Retour 1 v2 nouvelle regle", "sms": "Retour 1 v2 nouvelle regle 1:3 valve 2:1 1/2 | 3:12 | 4:17 1/16 union 5:17 1/16 te 6:17 | 7:2", "stock": ["1 1/2", "2", "2 1/2", "3", "3 1/2", "4"], "drop": ""};
+const D = {"segs": [{"type": "pipe", "a": [0.0, 0.0, 0.0], "b": [0.0, 2.5161290322580645, 0.0], "cls": "nipple"}, {"type": "valve", "a": [0.0, 2.5161290322580645, 0.0], "b": [0.0, 5.241935483870968, 0.0]}, {"type": "pipe", "a": [0.0, 5.241935483870968, 0.0], "b": [0.0, 6.5, 0.0], "cls": "nipple"}, {"type": "elbow", "a": [0.0, 6.5, 0.0]}, {"type": "pipe", "a": [0.0, 6.5, 0.0], "b": [14.125, 6.5, 0.0], "cls": "coupe"}, {"type": "elbow", "a": [14.125, 6.5, 0.0]}, {"type": "pipe", "a": [14.125, 6.5, 0.0], "b": [14.125, 6.5, 17.98155737704918], "cls": "coupe"}, {"type": "union", "a": [14.125, 6.5, 17.98155737704918], "b": [14.125, 6.5, 20.352751756440284]}, {"type": "pipe", "a": [14.125, 6.5, 20.352751756440284], "b": [14.125, 6.5, 38.33430913348947], "cls": "coupe"}, {"type": "te", "a": [14.125, 6.5, 38.33430913348947], "b": [14.125, 2.5, 38.33430913348947]}, {"type": "pipe", "a": [14.125, 6.5, 38.33430913348947], "b": [14.125, 6.5, 56.250000000000014], "cls": "coupe"}, {"type": "elbow", "a": [14.125, 6.5, 56.250000000000014]}, {"type": "pipe", "a": [14.125, 6.5, 56.250000000000014], "b": [16.625, 6.5, 56.250000000000014], "cls": "nipple"}, {"type": "elbow", "a": [16.625, 6.5, 56.250000000000014]}], "labels": [{"p": [0.0, 0.0, 0.0], "t": "FACE", "kind": "end"}, {"p": [0.0, 1.2580645161290323, 0.0], "d": "u", "t": "1", "sub": "3", "kind": "pipe", "cls": "nipple"}, {"p": [0.0, 3.879032258064516, 0.0], "d": "u", "t": "V", "kind": "valve"}, {"p": [0.0, 5.870967741935484, 0.0], "d": "u", "t": "2", "sub": "1 1/2", "kind": "pipe", "cls": "nipple"}, {"p": [0.0, 6.5, 0.0], "t": "90", "kind": "end"}, {"p": [7.0625, 6.5, 0.0], "d": "r", "t": "3", "sub": "12", "kind": "pipe", "cls": "coupe"}, {"p": [14.125, 6.5, 0.0], "t": "90", "kind": "end"}, {"p": [14.125, 6.5, 8.99077868852459], "d": "f", "t": "4", "sub": "17 1/16", "kind": "pipe", "cls": "coupe"}, {"p": [14.125, 6.5, 19.167154566744735], "d": "f", "t": "U", "kind": "union"}, {"p": [14.125, 6.5, 29.343530444964877], "d": "f", "t": "5", "sub": "17 1/16", "kind": "pipe", "cls": "coupe"}, {"p": [14.125, 1.5, 38.33430913348947], "t": "drip", "kind": "te"}, {"p": [14.125, 6.5, 47.29215456674474], "d": "f", "t": "6", "sub": "17", "kind": "pipe", "cls": "coupe"}, {"p": [14.125, 6.5, 56.250000000000014], "t": "90", "kind": "end"}, {"p": [15.375, 6.5, 56.250000000000014], "d": "r", "t": "7", "sub": "2", "kind": "pipe", "cls": "nipple"}, {"p": [16.625, 6.5, 56.250000000000014], "t": "90", "kind": "end"}], "titre": "Retour 1 v2 nouvelle regle", "sms": "Retour 1 v2 nouvelle regle 1:3 valve 2:1 1/2 | 3:12 | 4:17 1/16 union 5:17 1/16 te 6:17 | 7:2", "stock": ["1 1/2", "2", "2 1/2", "3", "3 1/2", "4"], "drop": ""};
 document.getElementById('sub').textContent = (D.drop?('descente '+D.drop+' · '):'') + (D.stock.length?('nipples : '+D.stock.join(', ')):'');
 const list = document.getElementById('list');
 for (const l of D.labels){
@@ -58,6 +58,14 @@ for (const s of D.segs){
   else if (s.type==='te'){ const m = new THREE.Mesh(new THREE.SphereGeometry(R*1.5, 20, 20), new THREE.MeshStandardMaterial({color:0x1a9a3a})); m.position.copy(v(s.a)); scene.add(m); cyl(s.a, s.b, R, 0x1a9a3a); }
   else if (s.type==='elbow'){ const m = new THREE.Mesh(new THREE.SphereGeometry(R*1.45, 20, 20), new THREE.MeshStandardMaterial({color:0x0b4f9c})); m.position.copy(v(s.a)); scene.add(m); }
 }
+// Michael 22 sept. : « je ne vois pas le tuyau, il est caché par ton écriture » → étiquette DÉCALÉE à côté du tuyau
+// (perpendiculaire au tronçon) + ligne de rappel fine jusqu'au tuyau.
+const OFF = {d:[7,0,0], u:[7,0,0], r:[0,7,0], l:[0,7,0], f:[0,7,0], b:[0,7,0]};
+function decale(p, d, k){ const o = OFF[d] || [7,0,0]; return [p[0]+o[0]*k, p[1]+o[1]*k, p[2]+o[2]*k]; }
+function rappel(p, q, color){
+  const g = new THREE.BufferGeometry().setFromPoints([v(p), v(q)]);
+  scene.add(new THREE.Line(g, new THREE.LineBasicMaterial({color})));
+}
 function sprite(text, sub, p, color, big){
   const c = document.createElement('canvas'); c.width = 512; c.height = 256; const x = c.getContext('2d');
   x.fillStyle = 'rgba(255,255,255,.85)'; x.roundRect(8, 8, 496, 240, 40); x.fill();
@@ -65,14 +73,15 @@ function sprite(text, sub, p, color, big){
   x.fillStyle = color; x.textAlign = 'center'; x.font = 'bold 150px sans-serif'; x.fillText(text, 256, sub ? 140 : 180);
   if (sub){ x.font = 'bold 78px sans-serif'; x.fillStyle = '#111'; x.fillText(sub, 256, 230); }
   const s = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(c), depthTest:false}));
-  const k = big ? 7 : 5; s.scale.set(k*2, k, 1); s.position.copy(v(p)); s.renderOrder = 10; scene.add(s);
+  const k = big ? 5 : 3.2; s.scale.set(k*2, k, 1); s.position.copy(v(p)); s.renderOrder = 10; scene.add(s);
 }
 for (const l of D.labels){
-  if (l.kind==='pipe') sprite(l.t, l.sub, [l.p[0], l.p[1]+2.6, l.p[2]], l.cls==='nipple'?'#666':(l.cls==='coupe'?'#000':'#c00'), true);
-  else if (l.kind==='valve') sprite('V', '', [l.p[0]+2.4, l.p[1], l.p[2]], '#b8860b', false);
-  else if (l.kind==='union') sprite('U', '', [l.p[0]+2.4, l.p[1], l.p[2]], '#2a6fc0', false);
-  else if (l.kind==='te') sprite('drip', '', l.p, '#1a9a3a', false);
-  else sprite(l.t, '', [l.p[0]+2.2, l.p[1]+2.2, l.p[2]], '#0b4f9c', false);
+  if (l.kind==='pipe'){ const q = decale(l.p, l.d, 1.0); const c = l.cls==='nipple'?'#666':(l.cls==='coupe'?'#000':'#c00');
+    rappel(l.p, q, 0x888888); sprite(l.t, l.sub, q, c, true); }
+  else if (l.kind==='valve'){ const q = decale(l.p, l.d, -0.8); rappel(l.p, q, 0xb8860b); sprite('V', '', q, '#b8860b', false); }
+  else if (l.kind==='union'){ const q = decale(l.p, l.d, -0.8); rappel(l.p, q, 0x2a6fc0); sprite('U', '', q, '#2a6fc0', false); }
+  else if (l.kind==='te') sprite('drip', '', [l.p[0], l.p[1]-2, l.p[2]], '#1a9a3a', false);
+  else sprite(l.t, '', [l.p[0]+3, l.p[1]+3, l.p[2]], '#0b4f9c', false);
 }
 const ctr = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3()).length() || 20;
 cam.position.set(ctr.x + size*1.1, ctr.y + size*0.5, ctr.z + size*1.5); cam.lookAt(ctr);
