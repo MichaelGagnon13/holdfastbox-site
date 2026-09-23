@@ -39,7 +39,7 @@ function dessiner(){
   segs.forEach((s,i)=>{ const q=[p[0]+DIRS[s.dir][0]*s.len, p[1]+DIRS[s.dir][1]*s.len];
     ctx.strokeStyle='#dfe6f0'; ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); ctx.stroke();
     ctx.fillStyle='#0b4f9c'; ctx.beginPath(); ctx.arc(q[0],q[1],7,0,7); ctx.fill();
-    const m=[(p[0]+q[0])/2,(p[1]+q[1])/2], vx=q[0]-p[0], vy=q[1]-p[1], vn=Math.hypot(vx,vy)||1, nx=-vy/vn*18, ny=vx/vn*18; ctx.fillStyle='#ffd34d'; ctx.font='bold 14px sans-serif'; ctx.textAlign=nx<0?'right':'left'; ctx.fillText((i+1)+' '+MOT[s.dir], m[0]+nx, m[1]+ny+5); ctx.textAlign='left';
+    const m=[(p[0]+q[0])/2,(p[1]+q[1])/2], vx=q[0]-p[0], vy=q[1]-p[1], vn=Math.hypot(vx,vy)||1, bx=m[0]-vy/vn*16, by=m[1]+vx/vn*16; ctx.fillStyle='#ffd34d'; ctx.beginPath(); ctx.arc(bx,by,11,0,7); ctx.fill(); ctx.fillStyle='#2a1b00'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center'; ctx.fillText(String(i+1), bx, by+5); ctx.textAlign='left';
     p=q; });
   if(cur){ ctx.strokeStyle='rgba(255,211,77,.5)'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(cur.x0,cur.y0); ctx.lineTo(cur.x1,cur.y1); ctx.stroke(); }
   document.getElementById('liste').innerHTML = segs.length ? 'Tap → ' + segs.map((s,i)=>(i+1)+'. '+MOT[s.dir]).join(' → ') : 'Trace un trait par tronçon, en partant du tap.';
