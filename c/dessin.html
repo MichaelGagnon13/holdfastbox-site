@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Dessine le chemin</title>
+<style>
+ html,body{margin:0;height:100%;background:#1c2230;color:#eef;font-family:-apple-system,Helvetica,Arial,sans-serif;overflow:hidden;touch-action:none}
+ #haut{position:fixed;top:0;left:0;right:0;display:flex;gap:6px;padding:8px;background:linear-gradient(180deg,#2b3648,#1a2230);border-bottom:1px solid #3a4658;z-index:2;align-items:center}
+ .btn{border:0;border-radius:12px;padding:10px 12px;font-size:14px;font-weight:700;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.6);
+   background:linear-gradient(180deg,#5b8ad8 0%,#2f61b8 48%,#244f9f 52%,#3a74d6 100%);box-shadow:0 2px 4px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.55)}
+ #env{background:linear-gradient(180deg,#7ee38a 0%,#2eaa48 48%,#22903a 52%,#4cc665 100%);margin-left:auto}
+ #eff{background:linear-gradient(180deg,#ff8a80 0%,#e53935 48%,#c62828 52%,#ff5252 100%)}
+ canvas{display:block;width:100vw;height:100vh}
+ #liste{position:fixed;left:8px;bottom:8px;font-size:14px;line-height:1.4;color:#ffd34d;background:rgba(21,27,38,.85);border-radius:10px;padding:6px 10px;max-width:70vw}
+ #aide{position:fixed;right:8px;bottom:8px;font-size:11px;color:#8a93a3;text-align:right}
+ #msg{position:fixed;top:56px;left:8px;font-size:13px;color:#9fd0ff}
+</style></head><body>
+<div id="haut"><a class="btn" href="/c/dernier.html" style="text-decoration:none">← coupes</a>
+ <button class="btn" id="ann">↶ Annuler</button><button class="btn" id="eff">Effacer</button><button class="btn" id="env">Envoyer ➤</button></div>
+<div id="msg"></div>
+<canvas id="cv"></canvas>
+<div id="liste">Trace un trait par tronçon, en partant du tap.</div>
+<div id="aide">tap = point de départ<br>haut = je monte · bas = je descends<br>↘ droite · ↖ gauche · ↙ vers moi · ↗ vers le main</div>
+<script>
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const DIRS = {u:[0,-1], d:[0,1], r:[0.866,0.5], l:[-0.866,-0.5], f:[-0.866,0.5], b:[0.866,-0.5]};
+const MOT = {u:'je monte', d:'je descends', r:'vers la droite', l:'vers la gauche', f:'vers moi', b:'vers le main'};
+let segs = [], cur = null, org = null;
+function resize(){ cv.width = innerWidth*devicePixelRatio; cv.height = innerHeight*devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); dessiner(); }
+function snap(dx,dy){ const n=Math.hypot(dx,dy)||1; let best='u',bs=-9; for(const k in DIRS){const s=(dx*DIRS[k][0]+dy*DIRS[k][1])/n; if(s>bs){bs=s;best=k}} return {dir:best,len:n}; }
+function bout(){ let p = org ? [...org] : null; if(!p) return null; for(const s of segs){ p=[p[0]+DIRS[s.dir][0]*s.len, p[1]+DIRS[s.dir][1]*s.len]; } return p; }
+function dessiner(){
+  ctx.clearRect(0,0,innerWidth,innerHeight);
+  // grille iso légère
+  ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=1;
+  for(let x=-innerHeight;x<innerWidth*2;x+=40){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+innerHeight*0.577,innerHeight);ctx.stroke(); ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x-innerHeight*0.577,innerHeight);ctx.stroke(); }
+  if(!org){ ctx.fillStyle='#8a93a3'; ctx.font='16px sans-serif'; ctx.textAlign='center'; ctx.fillText('Touche l\'écran là où est le TAP, puis tire un trait par tronçon', innerWidth/2, innerHeight/2); return; }
+  let p=[...org]; ctx.fillStyle='#ffd34d'; ctx.beginPath(); ctx.arc(p[0],p[1],9,0,7); ctx.fill();
+  ctx.fillStyle='#ffd34d'; ctx.font='bold 13px sans-serif'; ctx.textAlign='left'; ctx.fillText('TAP', p[0]+12, p[1]+5);
+  ctx.lineWidth=9; ctx.lineCap='round'; ctx.lineJoin='round';
+  segs.forEach((s,i)=>{ const q=[p[0]+DIRS[s.dir][0]*s.len, p[1]+DIRS[s.dir][1]*s.len];
+    ctx.strokeStyle='#dfe6f0'; ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); ctx.stroke();
+    ctx.fillStyle='#0b4f9c'; ctx.beginPath(); ctx.arc(q[0],q[1],7,0,7); ctx.fill();
+    const m=[(p[0]+q[0])/2,(p[1]+q[1])/2]; ctx.fillStyle='#ffd34d'; ctx.font='bold 14px sans-serif'; ctx.fillText((i+1)+' '+MOT[s.dir], m[0]+10, m[1]-6);
+    p=q; });
+  if(cur){ ctx.strokeStyle='rgba(255,211,77,.5)'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(cur.x0,cur.y0); ctx.lineTo(cur.x1,cur.y1); ctx.stroke(); }
+  document.getElementById('liste').innerHTML = segs.length ? 'Tap → ' + segs.map((s,i)=>(i+1)+'. '+MOT[s.dir]).join(' → ') : 'Trace un trait par tronçon, en partant du tap.';
+}
+cv.addEventListener('pointerdown', e=>{ if(!org){ org=[e.clientX,e.clientY]; dessiner(); return; } cur={x0:e.clientX,y0:e.clientY,x1:e.clientX,y1:e.clientY}; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove', e=>{ if(cur){ cur.x1=e.clientX; cur.y1=e.clientY; dessiner(); } });
+cv.addEventListener('pointerup', e=>{ if(!cur) return; const s=snap(cur.x1-cur.x0, cur.y1-cur.y0); cur=null; if(s.len>25) segs.push(s); dessiner(); });
+document.getElementById('ann').onclick=()=>{ segs.pop(); dessiner(); };
+document.getElementById('eff').onclick=()=>{ segs=[]; org=null; dessiner(); };
+document.getElementById('env').onclick=async()=>{
+  if(!segs.length){ document.getElementById('msg').textContent='Rien à envoyer.'; return; }
+  const API = location.hostname.endsWith('ts.net') || location.hostname==='127.0.0.1' ? '' : 'https://michael-system-product-name.tail362e86.ts.net';
+  const r=await fetch(API+'/c/api/chemin',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({segments:segs.map(s=>({dir:s.dir,len:Math.round(s.len)})), ts:Date.now()})});
+  const j=await r.json(); document.getElementById('msg').textContent=j.message||'envoyé';
+};
+addEventListener('resize', resize); resize();
+</script></body></html>
