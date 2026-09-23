@@ -76,8 +76,8 @@ function dessiner(){
   for(let x=-H;x<W*2;x+=36){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+H*0.577,H);ctx.stroke(); ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x-H*0.577,H);ctx.stroke(); }
   if(!etat.depart){ ctx.fillStyle='#8a93a3'; ctx.font='15px sans-serif'; ctx.textAlign='center'; ctx.fillText('Le chemin se dessine ici, du départ vers la fin', W/2, H/2); return; }
   // calcul des points (longueur fixe par tronçon) puis recentrage
-  const L=Math.min(110, Math.max(60, Math.min(W,H)/ (etat.legs.length+1.5)));
-  const pts=[[0,0]]; etat.legs.forEach((l,i)=>{ const p=proj(l); const q=pts[pts.length-1]; const Li=L*(1+0.18*(i%3)); pts.push([q[0]+p[0]*Li, q[1]+p[1]*Li]); });
+  const L=Math.min(150, Math.max(70, Math.min(W,H)/ (etat.legs.length+1.2)));
+  const pts=[[0,0]]; etat.legs.forEach((l,i)=>{ const p=proj(l); const q=pts[pts.length-1]; const Li=L*(1+0.35*(i%4)); pts.push([q[0]+p[0]*Li, q[1]+p[1]*Li]); });
   let minx=Math.min(...pts.map(p=>p[0])), maxx=Math.max(...pts.map(p=>p[0])), miny=Math.min(...pts.map(p=>p[1])), maxy=Math.max(...pts.map(p=>p[1]));
   const ox=W/2-(minx+maxx)/2, oy=H/2-(miny+maxy)/2;
   const P=pts.map(p=>[p[0]+ox,p[1]+oy]);
