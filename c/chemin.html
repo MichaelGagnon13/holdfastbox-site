@@ -224,17 +224,19 @@ function equations(){ // lignes du système A·L = b (on ne garde que A pour le 
   return rows;
 }
 function complet(){ const N=etat.legs.length; if(!N) return false; return rangN(equations(),N)===N; }
+function deduit(k){ // le tronçon k est-il déjà déterminé par ce qu'on sait (rang inchangé si on ajoute son équation) ?
+  const N=etat.legs.length; const rows=equations(); const r=new Array(N).fill(0); r[k]=1; return rangN(rows,N)===rangN(rows.concat([r]),N); }
 function rangN(rows,N){ const M=rows.map(r=>r.slice()); let r=0; for(let c=0;c<N&&r<M.length;c++){ let piv=-1; for(let i=r;i<M.length;i++){ if(Math.abs(M[i][c])>1e-9){piv=i;break;} } if(piv<0) continue;
   [M[r],M[piv]]=[M[piv],M[r]]; for(let i=0;i<M.length;i++){ if(i!==r&&Math.abs(M[i][c])>1e-9){ const f=M[i][c]/M[r][c]; M[i]=M[i].map((a,j)=>a-f*M[r][j]); } } r++; } return r; }
 function rendreMesure(q, B){
   const Q=questions(); const sel=etat.sel!=null?Q[etat.sel]:null;
   if(!sel){ const nb=Q.filter(x=>!x.opt&&valeurQ(x)==null).length;
-    const manq=complet()?[]:Q.filter(x=>!x.opt&&valeurQ(x)==null).map(x=>x.id.startsWith('L')?'T'+(x.leg+1):(x.id.startsWith('N')?'⌂'+(x.leg+1):(x.id==='plafA'?'⌂A':'⌂B')));
+    const manq=complet()?[]:Q.filter(x=>!x.opt&&valeurQ(x)==null&&!(x.id.startsWith('L')&&deduit(x.leg))).map(x=>x.id.startsWith('L')?'T'+(x.leg+1):(x.id.startsWith('N')?'⌂'+(x.leg+1):(x.id==='plafA'?'⌂A':'⌂B')));
     q.innerHTML=(complet()?'Toutes les cotes sont là : Envoyer.':(manq.length+' mesure'+(manq.length>1?'s':'')+' à prendre. Touche un pointillé ou un bouton.'))+'<span class="petit">'+(manq.length?'<b style="color:#ff8a80">À mesurer : '+manq.join(', ')+'</b> · ':'')+'⌂ = hauteur sous le plafond · T = longueur centre à centre · gris = je calcule</span>';
     // liste des cotes en boutons (les pastilles se cachent l'une l'autre quand le chemin est long, Michael 24 sept. 16:55)
     Q.forEach((Qc,qi)=>{ const v=valeurQ(Qc); const lab=(Qc.id.startsWith('L')?'T'+(Qc.leg+1):(Qc.id.startsWith('N')?'⌂'+(Qc.leg+1):(Qc.id.startsWith('M')?({te:'T',valve:'V',union:'U'}[Qc.m]+(Qc.leg+1)):(Qc.id==='plafA'?'⌂A':(Qc.id==='plafB'?'⌂B':(Qc.id==='axe0x'?'↔ axe':(Qc.id==='axe0y'?'↕ axe':'◇')))))));
       if(Qc.id.startsWith('axe0')){ const on=(etat.mes||{})[Qc.id]!==false; const b=btn(lab+' '+(on?'= 0 ✔':'écart donné'), on?'vert':'or', ()=>{ etat.sel=qi; cur={po:'',f:0,c:null}; }); b.classList.add('k'); B.appendChild(b); return; }
-      if(Qc.fixe||Qc.min||(v==null&&Qc.id.startsWith('L')&&complet())){ const b=btn(lab+' '+(Qc.min?'min':(Qc.fixe?'fixe '+fmt16(etat.cons.longs[Qc.leg]):'calculé')), 'gris', ()=>false); b.classList.add('k'); b.style.opacity='.6'; B.appendChild(b); return; }
+      if(Qc.fixe||Qc.min||(v==null&&Qc.id.startsWith('L')&&deduit(Qc.leg))){ const b=btn(lab+' '+(Qc.min?'min':(Qc.fixe?'fixe '+fmt16(etat.cons.longs[Qc.leg]):'calculé')), 'gris', ()=>false); b.classList.add('k'); b.style.opacity='.6'; B.appendChild(b); return; }
       const b=btn(lab+' '+(v!=null?fmt16(v):'?'), v!=null?'vert':(Qc.opt?'gris':'or'), ()=>{ etat.sel=qi; cur={po:v?String(Math.floor(v/16)):'', f:v?v%16:0, c:null}; }); b.classList.add('k'); B.appendChild(b); });
     if(complet()) B.appendChild(btn('Envoyer à Claude ➤', 'vert large', envoyer, 'je calcule et je te dis les coupes'));
     return; }
@@ -279,7 +281,7 @@ function dessinerCotes(P3, S0){
     else if(Qc.id.startsWith('N')){ const c=P3[Qc.leg]; a=c; b=[c[0],c[1],zmax]; off=-14; }
     else if(Qc.id.startsWith('axe0')){ return; }
     if(!a) return;
-    const [sa,sb]=perp(S(a),S(b),off); const v=valeurQ(Qc); const sel=etat.sel===qi; const calc=Qc.fixe||Qc.min||(v==null&&Qc.id.startsWith('L')&&complet());
+    const [sa,sb]=perp(S(a),S(b),off); const v=valeurQ(Qc); const sel=etat.sel===qi; const calc=Qc.fixe||Qc.min||(v==null&&Qc.id.startsWith('L')&&deduit(Qc.leg));
     ctx.setLineDash([6,5]); ctx.lineWidth=sel?3:2; ctx.strokeStyle= calc?'#5a6272':(v!=null?'#7ee38a':(Qc.opt?'#8a93a3':'#ffd34d')); ctx.beginPath(); ctx.moveTo(sa[0],sa[1]); ctx.lineTo(sb[0],sb[1]); ctx.stroke(); ctx.setLineDash([]);
     // petits traits d'appel
     ctx.lineWidth=1; ctx.beginPath(); const A0=S(a),B0=S(b); ctx.moveTo(A0[0],A0[1]); ctx.lineTo(sa[0],sa[1]); ctx.moveTo(B0[0],B0[1]); ctx.lineTo(sb[0],sb[1]); ctx.stroke();
