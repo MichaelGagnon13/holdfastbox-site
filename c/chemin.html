@@ -25,7 +25,7 @@
  #msg{font-size:12px;color:#8a93a3;margin-top:6px;min-height:14px}
 </style></head><body>
 <div id="app">
- <div id="haut"><a class="btn gris" id="retour" href="/c/dernier.html" style="text-decoration:none;font-size:12px;padding:8px 10px">← sections</a><h1 id="titre">Section</h1><button class="btn gris" id="annuler">↶ Annuler</button></div>
+ <div id="haut"><a class="btn gris" id="retour" href="/c/dernier.html" style="text-decoration:none;font-size:12px;padding:8px 10px">← sections</a><h1 id="titre">Section</h1><button class="btn gris" id="annuler">↶ Un pas</button><button class="btn rouge" id="effacer" style="font-size:13px;padding:8px 10px">✕ Tout effacer</button></div>
  <canvas id="cv"></canvas>
  <div id="panneau"><p id="q"></p><p id="chemin"></p><div class="grille" id="btns"></div><div id="msg"></div></div>
 </div>
@@ -33,8 +33,8 @@
 // ---------- repère : face au tap, le main dans le dos ----------
 const V3 = {r:[1,0,0], l:[-1,0,0], f:[0,1,0], b:[0,-1,0], u:[0,0,1], d:[0,0,-1]};
 const ISO = {r:[0.866,0.5], l:[-0.866,-0.5], f:[-0.866,0.5], b:[0.866,-0.5], u:[0,-1], d:[0,1]};
-const MOT = {u:'je monte', d:'je descends', r:'vers la droite', l:'vers la gauche', f:'vers moi', b:'vers le main'};
-const MOT45 = {u:'en montant', d:'en descendant', r:'vers la droite', l:'vers la gauche', f:'vers moi', b:'vers le main'};
+const MOT = {u:'je monte', d:'je descends', r:'vers la droite', l:'vers la gauche', f:'vers l\'arrière', b:'tout droit'};
+const MOT45 = {u:'en montant', d:'en descendant', r:'vers la droite', l:'vers la gauche', f:'vers l\'arrière', b:'tout droit'};
 const OPP = {u:'d', d:'u', r:'l', l:'r', f:'b', b:'f'};
 const DEPARTS = {tap:'Tap', coude:'Coude', te:'Té', bague:'Bague'};
 const FINS = {bout:'Bout (tuyau nu)', coude:'Coude', te:'Té', bague:'Bague'};
@@ -60,7 +60,7 @@ function phrase(){
   for(const l of etat.legs){
     if(l.sens.length===2) p.push(MOT45[l.sens[0]]+' '+MOT45[l.sens[1]]); else p.push(MOT[l.sens[0]]);
     for(const m of l.marqueurs) p.push(MARQ[m].toLowerCase());
-    if(l.fin==='90') p.push('90'); else if(l.fin==='45') p.push('45'); else if(l.fin&&l.fin.startsWith('fin:')) p.push('fin : '+FINS[l.fin.slice(4)].toLowerCase());
+    if(l.fin==='90') p.push('90'); else if(l.fin==='45') p.push('45'); else if(l.fin==='te90') p.push('té, ça tourne'); else if(l.fin&&l.fin.startsWith('fin:')) p.push('fin : '+FINS[l.fin.slice(4)].toLowerCase());
   }
   return p.join(', ');
 }
@@ -89,7 +89,10 @@ function dessiner(){
       if(m==='te'){ ctx.strokeStyle='#1a9a3a'; ctx.lineWidth=6; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y+22); ctx.stroke(); }
       ctx.fillStyle='#fff'; ctx.font='bold 11px sans-serif'; ctx.textAlign='center'; ctx.fillText(m==='valve'?'V':(m==='union'?'U':'T'), x, y+4); });
     // raccord au bout
-    if(l.fin==='90'||l.fin==='45'){ ctx.fillStyle='#0b4f9c'; ctx.beginPath(); ctx.arc(b[0],b[1],9,0,7); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='bold 10px sans-serif'; ctx.textAlign='center'; ctx.fillText(l.fin, b[0], b[1]+4); }
+    if(l.fin==='te90'){ const ux=(b[0]-a[0])/(Math.hypot(b[0]-a[0],b[1]-a[1])||1), uy=(b[1]-a[1])/(Math.hypot(b[0]-a[0],b[1]-a[1])||1);
+      ctx.strokeStyle='#1a9a3a'; ctx.lineWidth=7; ctx.beginPath(); ctx.moveTo(b[0],b[1]); ctx.lineTo(b[0]+ux*24,b[1]+uy*24); ctx.stroke();
+      ctx.fillStyle='#1a9a3a'; ctx.beginPath(); ctx.arc(b[0],b[1],10,0,7); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='bold 11px sans-serif'; ctx.textAlign='center'; ctx.fillText('T', b[0], b[1]+4); }
+    else if(l.fin==='90'||l.fin==='45'){ ctx.fillStyle='#0b4f9c'; ctx.beginPath(); ctx.arc(b[0],b[1],9,0,7); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='bold 10px sans-serif'; ctx.textAlign='center'; ctx.fillText(l.fin, b[0], b[1]+4); }
     else if(l.fin&&l.fin.startsWith('fin:')){ const t=l.fin.slice(4); ctx.fillStyle = t==='te'?'#1a9a3a':'#ffd34d'; ctx.beginPath(); ctx.arc(b[0],b[1],11,0,7); ctx.fill();
       if(t==='te'){ ctx.strokeStyle='#1a9a3a'; ctx.lineWidth=7; ctx.beginPath(); ctx.moveTo(b[0],b[1]); ctx.lineTo(b[0],b[1]+26); ctx.stroke(); }
       ctx.fillStyle='#ffd34d'; ctx.font='bold 13px sans-serif'; ctx.textAlign='left'; ctx.fillText('FIN '+FINS[t].split(' ')[0].toUpperCase(), b[0]+14, b[1]-14); }
@@ -106,13 +109,13 @@ function dessiner(){
 }
 
 // ---------- panneau de questions ----------
-function btn(txt, cls, fn, sous){ const b=document.createElement('button'); b.className='btn '+(cls||''); b.innerHTML=txt+(sous?'<span class="petit">'+sous+'</span>':''); b.onclick=()=>{ hist.push(JSON.stringify({etat,etape,attente})); fn(); rendre(); }; return b; }
+function btn(txt, cls, fn, sous){ const b=document.createElement('button'); b.className='btn '+(cls||''); b.innerHTML=txt+(sous?'<span class="petit">'+sous+'</span>':''); b.onclick=()=>{ const snap=JSON.stringify({etat,etape,attente}); if(fn()===false) return; hist.push(snap); rendre(); }; return b; }
 function sensPermis(){
   const l=legCourante(); if(!l) return ['u','d','r','l','f','b'];
   const prev = etat.legs.length>=1 && l.fin ? l : null;      // on est après un 90/45 : l est le tronçon précédent
   if(!prev) return ['u','d','r','l','f','b'];
   const s=prev.sens;
-  if(prev.fin==='90'){ if(s.length===1) return ['u','d','r','l','f','b'].filter(k=>k!==s[0]&&k!==OPP[s[0]]); return ['u','d','r','l','f','b'].filter(k=>!s.includes(k)&&!s.map(x=>OPP[x]).includes(k)); }
+  if(prev.fin==='90'||prev.fin==='te90'){ if(s.length===1) return ['u','d','r','l','f','b'].filter(k=>k!==s[0]&&k!==OPP[s[0]]); return ['u','d','r','l','f','b'].filter(k=>!s.includes(k)&&!s.map(x=>OPP[x]).includes(k)); }
   if(prev.fin==='45'){ if(s.length===1) return ['u','d','r','l','f','b'].filter(k=>k!==s[0]&&k!==OPP[s[0]]); return s.slice(); }
   return ['u','d','r','l','f','b'];
 }
@@ -123,21 +126,22 @@ function rendre(){
     for(const k in DEPARTS) B.appendChild(btn(DEPARTS[k], 'or', ()=>{ etat.depart=k; etape='sens'; envoyerDepart(); })); }
   else if(etape==='sens'){ const l=legCourante(); q.textContent=(etat.legs.length&&l&&!l.fin?'':(etat.legs.length+1)+'. ')+'Dans quel sens ?';
     const ok=sensPermis(); const prev=l&&l.fin?l:null;
-    for(const k of ['u','d','r','l','f','b']){ const b=btn(MOT[k], ok.includes(k)?'':'gris', ()=>{ if(!ok.includes(k)) return;
+    for(const k of ['u','d','r','l','f','b']){ const b=btn(MOT[k], ok.includes(k)?'':'gris', ()=>{ if(!ok.includes(k)) return false;
         if(prev&&prev.fin==='45'){ // 45 : composer avec le sens précédent (axe → diagonale, diagonale → axe)
           const ns = prev.sens.length===1 ? [prev.sens[0], k] : [k];
           etat.legs.push({sens:ns, marqueurs:[], fin:null}); etape='bout'; }
         else { etat.legs.push({sens:[k], marqueurs:[], fin:null}); etape='bout'; } }); B.appendChild(b); }
-    if(!prev || prev.fin==='90'){ B.appendChild(btn('En 45 ↗', 'gris large', ()=>{ etape='sens45'; attente=null; }, 'deux sens combinés')); }
+    if(!prev || prev.fin==='90' || prev.fin==='te90'){ B.appendChild(btn('En 45 ↗', 'gris large', ()=>{ etape='sens45'; attente=null; }, 'deux sens combinés')); }
   }
   else if(etape==='sens45'){ q.textContent = attente ? 'Le 45 : '+MOT45[attente]+' … et ?' : 'Le 45 : premier sens ?';
     const ok = attente ? ['u','d','r','l','f','b'].filter(k=>k!==attente&&k!==OPP[attente]) : sensPermis();
-    for(const k of ['u','d','r','l','f','b']) B.appendChild(btn(MOT45[k], ok.includes(k)?'':'gris', ()=>{ if(!ok.includes(k)) return;
+    for(const k of ['u','d','r','l','f','b']) B.appendChild(btn(MOT45[k], ok.includes(k)?'':'gris', ()=>{ if(!ok.includes(k)) return false;
       if(!attente){ attente=k; } else { etat.legs.push({sens:[attente,k], marqueurs:[], fin:null}); attente=null; etape='bout'; } })); }
   else if(etape==='bout'){ q.textContent='Au bout de ce tronçon, il y a quoi ?';
+    B.appendChild(btn('Té, ça TOURNE', 'vert', ()=>{ legCourante().fin='te90'; etape='sens'; }, 'le chemin prend la branche'));
+    B.appendChild(btn('Té en ligne', 'vert', ()=>{ legCourante().marqueurs.push('te'); }, 'purge sur le côté, ça continue'));
     B.appendChild(btn('90', '', ()=>{ legCourante().fin='90'; etape='sens'; }));
     B.appendChild(btn('45', '', ()=>{ legCourante().fin='45'; etape='sens'; }));
-    B.appendChild(btn('Té + purge', 'vert', ()=>{ legCourante().marqueurs.push('te'); }, 'en ligne, ça continue'));
     B.appendChild(btn('Valve', 'or', ()=>{ legCourante().marqueurs.push('valve'); }, 'en ligne, ça continue'));
     B.appendChild(btn('Union', '', ()=>{ legCourante().marqueurs.push('union'); }, 'en ligne, ça continue'));
     B.appendChild(btn('C\'est la FIN', 'rouge', ()=>{ etape='fin'; })); }
@@ -147,6 +151,7 @@ function rendre(){
     B.appendChild(btn('Envoyer à Claude ➤', 'vert large', envoyer)); }
   dessiner();
 }
+document.getElementById('effacer').onclick=()=>{ hist.push(JSON.stringify({etat,etape,attente})); etat={depart:null, legs:[], fini:false}; etape='depart'; attente=null; rendre(); };
 document.getElementById('annuler').onclick=()=>{ const h=hist.pop(); if(!h) return; const o=JSON.parse(h); etat=o.etat; etape=o.etape; attente=o.attente; rendre(); };
 
 // ---------- réseau ----------
