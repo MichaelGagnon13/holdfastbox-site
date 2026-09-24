@@ -97,6 +97,9 @@ function dessiner(){
   const S=p=>[p[0]*sc+ox, p[1]*sc+oy]; const P=R.map(S);
   ctx.strokeStyle='rgba(255,255,255,.10)'; ctx.lineWidth=1; for(const [a,b] of G){ const A=S(a),B=S(b); ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.lineTo(B[0],B[1]); ctx.stroke(); }
   const p0=P[0]; for(const [v,lab] of T){ const V=S(v); ctx.strokeStyle='rgba(159,208,255,.55)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(p0[0],p0[1]); ctx.lineTo(V[0],V[1]); ctx.stroke(); ctx.fillStyle='rgba(159,208,255,.8)'; ctx.font='11px sans-serif'; ctx.textAlign='center'; ctx.fillText(lab, V[0], V[1]-4); }
+  // petite triade à CHAQUE raccord (Michael 24 sept. : « pour mieux me situer quand la section est longue »)
+  for(let i=1;i<P3.length;i++){ const c=P3[i]; const pc=P[i]; for(const [d,lab] of [[[0.3,0,0],'D'],[[0,-0.3,0],'TD'],[[0,0,0.3],'H']]){ const V=S(rot([c[0]+d[0],c[1]+d[1],c[2]+d[2]]));
+      ctx.strokeStyle='rgba(159,208,255,.35)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(pc[0],pc[1]); ctx.lineTo(V[0],V[1]); ctx.stroke(); ctx.fillStyle='rgba(159,208,255,.65)'; ctx.font='9px sans-serif'; ctx.textAlign='center'; ctx.fillText(lab, V[0], V[1]-2); } }
   ctx.lineCap='round'; ctx.lineJoin='round';
   etat.legs.forEach((l,i)=>{ const a=P[i], b=P[i+1];
     const Qs=(etape==='mesures'&&etat.sel!=null)?questions()[etat.sel]:null; ctx.strokeStyle=(Qs&&Qs.leg===i)?'#ffd34d':'#dfe6f0'; ctx.lineWidth=10; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
