@@ -7,15 +7,15 @@
 <style>
  html,body{margin:0;height:100%;background:#151b26;font-family:-apple-system,Helvetica,Arial,sans-serif;color:#eef;overflow:hidden}
  #app{display:flex;height:100%}
- #bande{width:64px;flex:none;display:flex;flex-direction:column;gap:6px;padding:8px 4px;box-sizing:border-box;
+ #bande{width:64px;flex:none;display:flex;flex-direction:column;gap:3px;padding:6px 4px;box-sizing:border-box;
    background:linear-gradient(180deg,#2b3648,#1a2230);border-right:1px solid #3a4658;box-shadow:inset -6px 0 12px rgba(0,0,0,.35)}
- .btn{display:block;width:100%;border:0;border-radius:11px;padding:7px 2px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;
+ .btn{display:block;width:100%;border:0;border-radius:9px;padding:4px 2px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;
    text-shadow:0 1px 1px rgba(0,0,0,.6);position:relative;overflow:hidden;
    background:linear-gradient(180deg,#5b8ad8 0%,#2f61b8 48%,#244f9f 52%,#3a74d6 100%);
    box-shadow:0 2px 4px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(0,0,0,.35)}
  .btn::before{content:"";position:absolute;left:6%;right:6%;top:2px;height:45%;border-radius:12px 12px 40% 40%;
    background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,.05))}
- .btn small{display:block;font-weight:400;font-size:9px;opacity:.9;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .btn small{display:block;font-weight:400;font-size:8px;opacity:.9;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
  .btn.neuf{background:linear-gradient(180deg,#6b7a8f,#3f4a5c 48%,#333c4a 52%,#4d5a6e);opacity:.9}
  .btn.vide{background:linear-gradient(180deg,#5a6272,#3a4150 48%,#30363f 52%,#454c58);opacity:.55;cursor:default}
  .btn.actif{background:linear-gradient(180deg,#ffd34d 0%,#f39c12 48%,#d9820a 52%,#ffb42e 100%);color:#2a1b00;text-shadow:0 1px 0 rgba(255,255,255,.5);
@@ -47,12 +47,12 @@ let etat = null, actif = null, tokAffiche = null, armeFait = 0;
 const pad = n => String(n).padStart(2,'0');
 function rendre(){
   const b = document.getElementById('btns'); b.innerHTML = '';
-  for (let i = 1; i <= 5; i++){
+  for (let i = 1; i <= 11; i++){                       // Michael 24 sept. : « tu en as cinq, mets-en dix ou onze, prends toute la place »
     const s = etat.sections[String(i)];
     const el = document.createElement('button'); el.className = 'btn' + (s ? (String(i) === actif ? ' actif' : '') : ' vide');
-    el.innerHTML = 'S' + i + '<small>' + (s ? s.nom : '—') + '</small>';
+    el.innerHTML = 'S' + i + '<small>' + (s ? s.nom : 'Section ' + i) + '</small>';
     if (s) el.onclick = () => { actif = String(i); rendre(); };
-    else { el.classList.remove('vide'); el.classList.add('neuf'); el.innerHTML = 'S' + i + '<small>+ chemin</small>'; el.onclick = () => { location.href = CHEMIN + '/c/chemin.html?slot=' + i; }; }
+    else { el.classList.remove('vide'); el.classList.add('neuf'); el.innerHTML = 'S' + i + '<small>Section ' + i + '</small>'; el.onclick = () => { location.href = CHEMIN + '/c/chemin.html?slot=' + i; }; }
     b.appendChild(el);
   }
   const s = etat.sections[actif];

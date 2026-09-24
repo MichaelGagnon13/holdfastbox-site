@@ -1,99 +1,59 @@
 <!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Légende — comment dicter un chemin</title>
+<title>Légende — le constructeur de chemin</title>
 <style>
  body{margin:0;padding:12px;background:#151b26;color:#eef;font-family:-apple-system,Helvetica,Arial,sans-serif}
  h1{font-size:19px;margin:0 0 8px} h2{font-size:15px;color:#9fd0ff;margin:14px 0 6px}
  .carte{background:#1f2836;border:1px solid #3a4658;border-radius:12px;padding:10px 12px;margin-bottom:10px}
  svg{width:100%;max-width:520px;display:block;margin:0 auto;background:#1c2230;border-radius:10px}
  .mot{display:inline-block;background:#2f61b8;color:#fff;border-radius:8px;padding:3px 9px;margin:3px 4px 3px 0;font-weight:700;font-size:14px}
- .ex{font-family:ui-monospace,Menlo,monospace;color:#ffd34d;font-size:14px;line-height:1.5}
- p{margin:6px 0;font-size:14px;line-height:1.45;color:#cfd6e2} a{color:#9fd0ff}
+ .mot.vert{background:#2eaa48} .mot.or{background:#f39c12;color:#2a1b00} .mot.rouge{background:#e53935} .mot.gris{background:#4a5263}
+ p,li{margin:6px 0;font-size:14px;line-height:1.45;color:#cfd6e2} a{color:#9fd0ff} ol,ul{padding-left:20px;margin:4px 0}
+ .cle{background:#2a1b00;border-left:4px solid #f39c12;padding:8px 10px;border-radius:6px;color:#ffd34d;font-weight:700}
 </style></head><body>
-<h1>Comment dicter un chemin <a href="/c/dernier.html" style="font-size:12px">← coupes</a></h1>
+<h1>Le constructeur de chemin <a href="/c/dernier.html" style="font-size:12px">← sections</a></h1>
+<p>Mise à jour du 24 septembre. Plus rien à la voix : la forme par boutons, puis les cotes au galon, puis Envoyer. Les coupes reviennent au casque, par texto et sur la bande.</p>
 
 <div class="carte">
 <h2>1. Le repère : face au tap, le main dans le dos</h2>
-<svg viewBox="0 0 520 300">
-  <defs><marker id="f" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ffd34d"/></marker></defs>
-  <rect x="0" y="0" width="520" height="300" fill="#1c2230"/>
-  <!-- main -->
-  <rect x="40" y="228" width="440" height="22" rx="11" fill="#8f98a8"/>
-  <text x="260" y="278" fill="#8f98a8" font-size="15" text-anchor="middle">MAIN (dans ton dos)</text>
-  <!-- tap -->
-  <rect x="249" y="170" width="22" height="60" rx="6" fill="#dfe6f0"/>
-  <text x="260" y="162" fill="#dfe6f0" font-size="14" text-anchor="middle">TAP</text>
-  <!-- toi -->
-  <circle cx="260" cy="60" r="16" fill="#ffd34d"/><rect x="246" y="76" width="28" height="34" rx="8" fill="#ffd34d"/>
-  <text x="260" y="130" fill="#ffd34d" font-size="14" text-anchor="middle">TOI (face au tap)</text>
-  <!-- flèches -->
-  <line x1="300" y1="90" x2="440" y2="90" stroke="#ffd34d" stroke-width="4" marker-end="url(#f)"/>
-  <text x="370" y="80" fill="#ffd34d" font-size="15" text-anchor="middle" font-weight="700">DROITE</text>
-  <line x1="220" y1="90" x2="80" y2="90" stroke="#ffd34d" stroke-width="4" marker-end="url(#f)"/>
-  <text x="150" y="80" fill="#ffd34d" font-size="15" text-anchor="middle" font-weight="700">GAUCHE</text>
-  <line x1="330" y1="200" x2="330" y2="140" stroke="#7fb3ff" stroke-width="4" marker-end="url(#f)"/>
-  <text x="392" y="175" fill="#7fb3ff" font-size="14" font-weight="700">VERS TOI</text>
-  <text x="392" y="192" fill="#7fb3ff" font-size="12">(s'éloigne du main)</text>
-  <line x1="190" y1="140" x2="190" y2="200" stroke="#7fb3ff" stroke-width="4" marker-end="url(#f)"/>
-  <text x="128" y="175" fill="#7fb3ff" font-size="14" font-weight="700" text-anchor="end">VERS LE MAIN</text>
-</svg>
-<p>Droite et gauche ne bougent jamais : le main les fixe. Si tu ne peux pas te placer là, dis-le (« je suis du côté gauche du tap »).</p>
-</div>
-
-<div class="carte">
-<h2>2. Les mots</h2>
-<span class="mot">je monte</span><span class="mot">je descends</span><span class="mot">vers la droite</span><span class="mot">vers la gauche</span>
-<span class="mot">tout droit</span><span class="mot">vers moi</span><span class="mot">vers le main</span>
-<span class="mot">90</span><span class="mot">45</span><span class="mot">té</span><span class="mot">fin coude</span><span class="mot">fin bout</span>
 <svg viewBox="0 0 520 200">
   <rect x="0" y="0" width="520" height="200" fill="#1c2230"/>
-  <!-- monte / descend -->
-  <line x1="60" y1="160" x2="60" y2="50" stroke="#dfe6f0" stroke-width="10" stroke-linecap="round"/>
-  <text x="60" y="185" fill="#cfd6e2" font-size="13" text-anchor="middle">je monte</text>
-  <line x1="130" y1="50" x2="130" y2="160" stroke="#dfe6f0" stroke-width="10" stroke-linecap="round"/>
-  <text x="130" y="185" fill="#cfd6e2" font-size="13" text-anchor="middle">je descends</text>
-  <!-- 90 -->
-  <polyline points="200,160 200,80 280,80" fill="none" stroke="#dfe6f0" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
-  <circle cx="200" cy="80" r="9" fill="#0b4f9c"/>
-  <text x="240" y="185" fill="#cfd6e2" font-size="13" text-anchor="middle">90</text>
-  <!-- 45 -->
-  <polyline points="320,160 320,110 370,60 430,60" fill="none" stroke="#dfe6f0" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
-  <circle cx="320" cy="110" r="9" fill="#0b4f9c"/><circle cx="370" cy="60" r="9" fill="#0b4f9c"/>
-  <text x="375" y="185" fill="#cfd6e2" font-size="13" text-anchor="middle">45 + 45 (désaxé)</text>
-  <!-- té -->
-  <line x1="460" y1="80" x2="510" y2="80" stroke="#dfe6f0" stroke-width="10" stroke-linecap="round"/>
-  <line x1="485" y1="80" x2="485" y2="130" stroke="#1a9a3a" stroke-width="8" stroke-linecap="round"/>
-  <circle cx="485" cy="80" r="9" fill="#1a9a3a"/>
-  <text x="485" y="185" fill="#cfd6e2" font-size="13" text-anchor="middle">té purge</text>
+  <rect x="235" y="20" width="50" height="26" rx="6" fill="#dfe6f0"/><text x="260" y="38" fill="#2a1b00" font-size="12" text-anchor="middle" font-weight="700">TAP</text>
+  <text x="260" y="66" fill="#8a93a3" font-size="11" text-anchor="middle">MAIN derrière toi</text>
+  <circle cx="260" cy="150" r="14" fill="#ffd34d"/><text x="260" y="180" fill="#ffd34d" font-size="12" text-anchor="middle">TOI</text>
+  <line x1="290" y1="150" x2="420" y2="150" stroke="#7fb3ff" stroke-width="4"/><text x="430" y="154" fill="#7fb3ff" font-size="13">DROITE</text>
+  <line x1="230" y1="150" x2="100" y2="150" stroke="#7fb3ff" stroke-width="4"/><text x="90" y="154" fill="#7fb3ff" font-size="13" text-anchor="end">GAUCHE</text>
+  <line x1="260" y1="130" x2="260" y2="84" stroke="#7ee38a" stroke-width="4"/><text x="270" y="100" fill="#7ee38a" font-size="13">TOUT DROIT (devant, vers le tap)</text>
+  <line x1="260" y1="168" x2="260" y2="196" stroke="#ff8a80" stroke-width="4"/><text x="270" y="194" fill="#ff8a80" font-size="13">VERS L'ARRIÈRE</text>
 </svg>
+<p>Droite et gauche ne bougent jamais. <b>Monte</b> et <b>descends</b> sont le haut et le bas. Le dessin de la page est en 3D : tourne-le au doigt, double-tape pour revenir à la vue de départ.</p>
 </div>
 
 <div class="carte">
-<h2>3. L'ordre, toujours le même</h2>
-<p class="ex">« Retour 2, on part. »  ← le chrono part ici<br>
-« Tap, je monte, 90, vers la droite, 90, tout droit, 90, vers la gauche, fin coude. »  ← le chemin<br>
-« Plafond-face 11 1/4. Plafond-coude 4 3/4. »  ← les hauteurs<br>
-« Droite 14 1/8. Tout droit 56 1/4. Gauche 2 1/2 face à centre. »  ← les longueurs, du tap vers la fin<br>
-« Donne-moi les longueurs. »</p>
-<p>Je relis le chemin en une phrase, tu dis oui, la page se met à jour. Pouces toujours ; millimètres seulement si tu le dis.</p>
+<h2>2. La forme, par boutons</h2>
+<p><b>Ça part de quoi ?</b> <span class="mot or">Tap</span><span class="mot or">Coude</span><span class="mot or">Té</span><span class="mot or">Bague</span></p>
+<p><b>Dans quel sens ?</b> <span class="mot">je monte</span><span class="mot">je descends</span><span class="mot">vers la droite</span><span class="mot">vers la gauche</span><span class="mot">tout droit</span><span class="mot">vers l'arrière</span><span class="mot gris">En 45 ↗</span> (deux sens combinés, ex. « vers la droite en montant »). Les boutons gris sont impossibles après le raccord choisi.</p>
+<p><b>Au bout du tronçon, il y a quoi ?</b> <span class="mot vert">Té, ça TOURNE</span> le chemin prend la branche, la purge reste dans l'axe · <span class="mot vert">Té en ligne</span> ça continue, purge sur le côté · <span class="mot">90</span> · <span class="mot">45</span> · <span class="mot or">Valve</span> · <span class="mot">Union</span> (en ligne, ça continue) · <span class="mot rouge">C'est la FIN</span> puis bout de tuyau nu / coude / té / bague.</p>
+<p><span class="mot gris">↶ Effacer</span> recule d'un pas ; plusieurs fois = tout effacer. Les pastilles : V valve, U union, T té (vert = purge). Le chrono part au premier bouton.</p>
 </div>
 
 <div class="carte">
-<h2>4. Le laser en diagonale (pour sauver un tronçon)</h2>
-<svg viewBox="0 0 520 170">
-  <rect x="0" y="0" width="520" height="170" fill="#1c2230"/>
-  <polyline points="80,130 80,60 400,60" fill="none" stroke="#dfe6f0" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
-  <circle cx="80" cy="60" r="9" fill="#0b4f9c"/>
-  <line x1="80" y1="130" x2="400" y2="60" stroke="#ff5252" stroke-width="3" stroke-dasharray="8 6"/>
-  <text x="60" y="100" fill="#cfd6e2" font-size="13" text-anchor="end">connu</text>
-  <text x="240" y="48" fill="#ffd34d" font-size="13" text-anchor="middle">? (je le calcule)</text>
-  <text x="270" y="115" fill="#ff5252" font-size="13">laser</text>
-</svg>
-<p>Tu me donnes le laser et <b>un</b> côté : je trouve l'autre. Dis d'où à où (centre ou face). Si le laser n'est pas au même niveau, je prends la hauteur en compte.</p>
+<h2>3. Les cotes : le chemin décide ce que je demande</h2>
+<p class="cle">Jamais une longueur par tronçon. Seulement ce qui manque pour CE chemin, une cote par écran.</p>
+<ol>
+<li><b>Plafond → départ</b> (face du tap) et <b>plafond → arrivée</b> (centre du tuyau, ou bout) : ça donne la montée ou la descente totale. Seulement si le chemin monte ou descend.</li>
+<li><b>Écart droite-gauche</b> : arrivée → ligne laser verticale posée sur le départ, lecture la plus courte. Bouton « arrivée à DROITE / à GAUCHE ».</li>
+<li><b>Écart devant-derrière</b> : du départ à l'arrivée le long de la ligne. Bouton « DEVANT / DERRIÈRE ».</li>
+<li><b>Longueur d'un tronçon</b> seulement s'il peut glisser sans changer l'arrivée (fer à cheval, deux verticales…). Il s'allume en jaune sur le dessin.</li>
+<li><b>Position d'une valve, d'un union, d'un té</b> depuis le raccord d'avant. « Passer » = je la place moi-même (valve sur la première horizontale, union et purge sur le grand bout).</li>
+<li><b>Contrôle</b> : diagonale départ → arrivée, au sol de préférence. Facultatif, mais ça attrape une fraction fausse avant de couper.</li>
+</ol>
+<p>Pavé : les pouces entiers au clavier de chiffres, la fraction dans la grille des seizièmes, le côté par deux gros boutons. Relis, touche une ligne pour la refaire, puis <span class="mot vert">Envoyer à Claude ➤</span>.</p>
 </div>
 
 <div class="carte">
-<h2>5. Nipples et coupes</h2>
-<p>Valve sur la <b>première horizontale</b> après le tap. Union et purge sur le <b>grand bout</b>. Le plus de <b>coupes à la machine</b> possible ; un nipple seulement quand le morceau fait moins de 5 po. Stock : 1 1/2, 2, 2 1/2, 3, 3 1/2, 4.</p>
+<h2>4. Ce qui revient</h2>
+<p>Le PC calcule les longueurs, vérifie que ça ferme, puis fait les coupes. Si une cote manque ou ne ferme pas, je le dis au casque en une phrase (« le tronçon 2 sortirait négatif : vérifie le côté »). Sinon : liste des coupes au casque, texto, 3D sur la bande.</p>
+<p><b>Nipples et coupes :</b> le plus de coupes à la filière possible ; un nipple seulement quand le morceau fait moins de 5 po. Stock : 1 1/2, 2, 2 1/2, 3, 3 1/2, 4. Prises 1 1/4 : 90 et té 1 1/16, 45 9/16, filet 11/16.</p>
 </div>
 </body></html>
