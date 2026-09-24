@@ -177,7 +177,7 @@ function rendre(){
     B.appendChild(btn('Mesures ➤', 'vert large', ()=>{ etat.sel=null; etape='mesures'; }, 'les cotes en pointillés sur le dessin')); }
   else if(etape==='mesures'){ rendreMesure(q, B); }
   else if(etape==='relire'){ rendreRelecture(q, B); }
-  dessiner();
+  requestAnimationFrame(resize);   // le panneau change de hauteur → le canevas se redimensionne
 }
 document.getElementById('annuler').onclick=()=>{ const h=hist.pop(); if(!h) return; const o=JSON.parse(h); etat=o.etat; etape=o.etape; attente=o.attente; rendre(); };
 
