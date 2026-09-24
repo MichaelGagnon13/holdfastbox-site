@@ -234,7 +234,7 @@ function rendreMesure(q, B){
     // liste des cotes en boutons (les pastilles se cachent l'une l'autre quand le chemin est long, Michael 24 sept. 16:55)
     Q.forEach((Qc,qi)=>{ const v=valeurQ(Qc); const lab=(Qc.id.startsWith('L')?'T'+(Qc.leg+1):(Qc.id.startsWith('N')?'⌂'+(Qc.leg+1):(Qc.id.startsWith('M')?({te:'T',valve:'V',union:'U'}[Qc.m]+(Qc.leg+1)):(Qc.id==='plafA'?'⌂A':(Qc.id==='plafB'?'⌂B':(Qc.id==='axe0x'?'↔ axe':(Qc.id==='axe0y'?'↕ axe':'◇')))))));
       if(Qc.id.startsWith('axe0')){ const on=(etat.mes||{})[Qc.id]!==false; const b=btn(lab+' '+(on?'= 0 ✔':'écart donné'), on?'vert':'or', ()=>{ etat.sel=qi; cur={po:'',f:0,c:null}; }); b.classList.add('k'); B.appendChild(b); return; }
-      if(Qc.fixe||Qc.min){ const b=btn(lab+' '+(Qc.min?'min':'fixe '+fmt16(etat.cons.longs[Qc.leg])), 'gris', ()=>false); b.classList.add('k'); b.style.opacity='.6'; B.appendChild(b); return; }
+      if(Qc.fixe||Qc.min||(v==null&&Qc.id.startsWith('L')&&complet())){ const b=btn(lab+' '+(Qc.min?'min':(Qc.fixe?'fixe '+fmt16(etat.cons.longs[Qc.leg]):'calculé')), 'gris', ()=>false); b.classList.add('k'); b.style.opacity='.6'; B.appendChild(b); return; }
       const b=btn(lab+' '+(v!=null?fmt16(v):'?'), v!=null?'vert':(Qc.opt?'gris':'or'), ()=>{ etat.sel=qi; cur={po:v?String(Math.floor(v/16)):'', f:v?v%16:0, c:null}; }); b.classList.add('k'); B.appendChild(b); });
     if(complet()) B.appendChild(btn('Envoyer à Claude ➤', 'vert large', envoyer, 'je calcule et je te dis les coupes'));
     return; }
@@ -279,11 +279,11 @@ function dessinerCotes(P3, S0){
     else if(Qc.id.startsWith('N')){ const c=P3[Qc.leg]; a=c; b=[c[0],c[1],zmax]; off=-14; }
     else if(Qc.id.startsWith('axe0')){ return; }
     if(!a) return;
-    const [sa,sb]=perp(S(a),S(b),off); const v=valeurQ(Qc); const sel=etat.sel===qi; const calc=Qc.fixe||Qc.min;
+    const [sa,sb]=perp(S(a),S(b),off); const v=valeurQ(Qc); const sel=etat.sel===qi; const calc=Qc.fixe||Qc.min||(v==null&&Qc.id.startsWith('L')&&complet());
     ctx.setLineDash([6,5]); ctx.lineWidth=sel?3:2; ctx.strokeStyle= calc?'#5a6272':(v!=null?'#7ee38a':(Qc.opt?'#8a93a3':'#ffd34d')); ctx.beginPath(); ctx.moveTo(sa[0],sa[1]); ctx.lineTo(sb[0],sb[1]); ctx.stroke(); ctx.setLineDash([]);
     // petits traits d'appel
     ctx.lineWidth=1; ctx.beginPath(); const A0=S(a),B0=S(b); ctx.moveTo(A0[0],A0[1]); ctx.lineTo(sa[0],sa[1]); ctx.moveTo(B0[0],B0[1]); ctx.lineTo(sb[0],sb[1]); ctx.stroke();
-    const mx=(sa[0]+sb[0])/2, my=(sa[1]+sb[1])/2; const txt=calc?(Qc.min?'min':fmt16(etat.cons.longs[Qc.leg])):(v!=null?fmt16(v):'?'); const pre=Qc.id.startsWith('M')?({te:'T',valve:'V',union:'U'}[Qc.m]+' '):(Qc.id==='plafA'||Qc.id==='plafB'||Qc.id.startsWith('N')?'⌂ ':(Qc.id==='diag'?'◇ ':''));
+    const mx=(sa[0]+sb[0])/2, my=(sa[1]+sb[1])/2; const txt=calc?(Qc.min?'min':(Qc.fixe?fmt16(etat.cons.longs[Qc.leg]):'calculé')):(v!=null?fmt16(v):'?'); const pre=Qc.id.startsWith('M')?({te:'T',valve:'V',union:'U'}[Qc.m]+' '):(Qc.id==='plafA'||Qc.id==='plafB'||Qc.id.startsWith('N')?'⌂ ':(Qc.id==='diag'?'◇ ':''));
     ctx.font='bold 13px sans-serif'; const w=ctx.measureText(pre+txt).width+16;
     ctx.fillStyle= calc?'#3a4150':(v!=null?'#2eaa48':(Qc.opt?'#4a5263':'#f39c12')); if(sel) ctx.fillStyle='#ffd34d';
     ctx.beginPath(); ctx.roundRect(mx-w/2,my-12,w,24,8); ctx.fill();
