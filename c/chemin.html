@@ -230,7 +230,7 @@ function rendreMesure(q, B){
   const Q=questions(); const sel=etat.sel!=null?Q[etat.sel]:null;
   if(!sel){ const nb=Q.filter(x=>!x.opt&&valeurQ(x)==null).length;
     const manq=complet()?[]:Q.filter(x=>!x.opt&&valeurQ(x)==null).map(x=>x.id.startsWith('L')?'T'+(x.leg+1):(x.id.startsWith('N')?'⌂'+(x.leg+1):(x.id==='plafA'?'⌂A':'⌂B')));
-    q.innerHTML=(complet()?'Toutes les cotes sont là : Envoyer.':'Touche un pointillé « ? » ou un bouton et entre la mesure.')+'<span class="petit">'+(manq.length?'<b style="color:#ff8a80">Il manque : '+manq.join(', ')+'</b> · ':'')+'tout est au centre · jaune = à donner, gris = optionnel, vert = donné</span>';
+    q.innerHTML=(complet()?'Toutes les cotes sont là : Envoyer.':(manq.length+' mesure'+(manq.length>1?'s':'')+' à prendre. Touche un pointillé ou un bouton.'))+'<span class="petit">'+(manq.length?'<b style="color:#ff8a80">À mesurer : '+manq.join(', ')+'</b> · ':'')+'⌂ = hauteur sous le plafond · T = longueur centre à centre · gris = je calcule</span>';
     // liste des cotes en boutons (les pastilles se cachent l'une l'autre quand le chemin est long, Michael 24 sept. 16:55)
     Q.forEach((Qc,qi)=>{ const v=valeurQ(Qc); const lab=(Qc.id.startsWith('L')?'T'+(Qc.leg+1):(Qc.id.startsWith('N')?'⌂'+(Qc.leg+1):(Qc.id.startsWith('M')?({te:'T',valve:'V',union:'U'}[Qc.m]+(Qc.leg+1)):(Qc.id==='plafA'?'⌂A':(Qc.id==='plafB'?'⌂B':(Qc.id==='axe0x'?'↔ axe':(Qc.id==='axe0y'?'↕ axe':'◇')))))));
       if(Qc.id.startsWith('axe0')){ const on=(etat.mes||{})[Qc.id]!==false; const b=btn(lab+' '+(on?'= 0 ✔':'écart donné'), on?'vert':'or', ()=>{ etat.sel=qi; cur={po:'',f:0,c:null}; }); b.classList.add('k'); B.appendChild(b); return; }
