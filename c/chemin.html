@@ -231,8 +231,12 @@ function rangN(rows,N){ const M=rows.map(r=>r.slice()); let r=0; for(let c=0;c<N
 function rendreMesure(q, B){
   const Q=questions(); const sel=etat.sel!=null?Q[etat.sel]:null;
   if(!sel){ const nb=Q.filter(x=>!x.opt&&valeurQ(x)==null).length;
-    const manq=complet()?[]:Q.filter(x=>!x.opt&&valeurQ(x)==null&&!(x.id.startsWith('L')&&deduit(x.leg))).map(x=>x.id.startsWith('L')?'T'+(x.leg+1):(x.id.startsWith('N')?'⌂'+(x.leg+1):(x.id==='plafA'?'⌂A':'⌂B')));
-    q.innerHTML=(complet()?'Toutes les cotes sont là : Envoyer.':(manq.length+' mesure'+(manq.length>1?'s':'')+' à prendre. Touche un pointillé ou un bouton.'))+'<span class="petit">'+(manq.length?'<b style="color:#ff8a80">À mesurer : '+manq.join(', ')+'</b> · ':'')+'⌂ = hauteur sous le plafond · T = longueur centre à centre · gris = je calcule</span>';
+    // nombre réel de mesures = inconnues − rang (+1 si le plafond au départ n'est pas encore donné, il sert à toutes les hauteurs)
+    const N=etat.legs.length, m0=etat.mes||{}; const nb=complet()?0:(N-rangN(equations(),N)+((etat.legs.some(estV)&&m0.plafA==null)?1:0));
+    let manq=complet()?[]:Q.filter(x=>!x.opt&&valeurQ(x)==null&&!(x.id.startsWith('L')&&deduit(x.leg))).map(x=>x.id.startsWith('L')?'T'+(x.leg+1):(x.id.startsWith('N')?'⌂'+(x.leg+1):(x.id==='plafA'?'⌂A':'⌂B')));
+    const Ax=axesDetour(); for(const [ax,plus,moins] of [['x','r','l'],['y','b','f']]){ if(!Ax[ax]||(ax==='x'?m0.axe0x===false:m0.axe0y!==true)) continue;   // « revient dans l'axe » : un seul des deux suffit
+      const grp=etat.legs.map((l,k)=>k).filter(k=>(l=>l.sens.includes(plus)||l.sens.includes(moins))(etat.legs[k])&&!connuL(k)).map(k=>'T'+(k+1)); if(grp.length>1){ manq=manq.filter(x=>!grp.includes(x)); manq.push(grp.join(' ou ')); } }
+    q.innerHTML=(complet()?'Toutes les cotes sont là : Envoyer.':(nb+' mesure'+(nb>1?'s':'')+' à prendre. Touche un pointillé ou un bouton.'))+'<span class="petit">'+(manq.length?'<b style="color:#ff8a80">À mesurer : '+manq.join(', ')+'</b> · ':'')+'⌂ = hauteur sous le plafond · T = longueur centre à centre · gris = je calcule</span>';
     // liste des cotes en boutons (les pastilles se cachent l'une l'autre quand le chemin est long, Michael 24 sept. 16:55)
     Q.forEach((Qc,qi)=>{ const v=valeurQ(Qc); const lab=(Qc.id.startsWith('L')?'T'+(Qc.leg+1):(Qc.id.startsWith('N')?'⌂'+(Qc.leg+1):(Qc.id.startsWith('M')?({te:'T',valve:'V',union:'U'}[Qc.m]+(Qc.leg+1)):(Qc.id==='plafA'?'⌂A':(Qc.id==='plafB'?'⌂B':(Qc.id==='axe0x'?'↔ axe':(Qc.id==='axe0y'?'↕ axe':'◇')))))));
       if(Qc.id.startsWith('axe0')){ const on=(etat.mes||{})[Qc.id]!==false; const b=btn(lab+' '+(on?'= 0 ✔':'écart donné'), on?'vert':'or', ()=>{ etat.sel=qi; cur={po:'',f:0,c:null}; }); b.classList.add('k'); B.appendChild(b); return; }
