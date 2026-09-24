@@ -213,6 +213,9 @@ function questions(){
     Q.push({id:'L'+k, leg:k, titre:'Tronçon '+(k+1)+' : '+(k===0?ptA+' → centre du raccord':'centre à centre'), sous:'au galon, le long du mur', opt:false, fixe, min}); });
   etat.legs.forEach((l,k)=>{ if(!estV(l)) return; const fixe=etat.cons.longs[k]!=null, min=!!etat.cons.min[k]; Q.push({id:'L'+k, leg:k, titre:'Tronçon '+(k+1)+' (vertical) : centre à centre', sous:'optionnel : je le déduis des hauteurs', opt:true, fixe, min}); });
   if(vert && niveauxRevenus().length) Q.push({id:'nivegal', titre:'Après un détour (descend puis monte), la ligne revient à la même hauteur ?', sous:'oui par défaut · touche pour dire non', opt:true});
+  const usedX=etat.legs.some(l=>l.sens.includes('r')||l.sens.includes('l')), usedY=etat.legs.some(l=>l.sens.includes('b')||l.sens.includes('f'));
+  if(usedY) Q.push({id:'dy', titre:'Tap → arrivée, devant-derrière (deux points qui existent)', sous:'au galon le long du mur · remplace la dernière longueur vers le té', cote:[['b','arrivée DEVANT'],['f','arrivée DERRIÈRE']], opt:true, ecart:true});
+  Q.push({id:'diag', titre:'Contrôle : diagonale directe tap → arrivée', sous:'optionnel, attrape une erreur avant de couper', opt:true});
   const A=axesDetour(); if(A.x) Q.push({id:'axe0x', titre:'Droite-gauche : revient dans l\'axe du départ ?', sous:'écart 0 · touche pour donner l\'écart réel', opt:true, axe:0}); if(A.y) Q.push({id:'axe0y', titre:'Devant-derrière : revient dans l\'axe du départ ?', sous:'écart 0 · touche pour donner l\'écart réel', opt:true, axe:1});
   etat.legs.forEach((l,i)=>{ l.marqueurs.forEach((m,k)=>{ if(((etat.cons.pos[i]||{})[k])!=null) return; const nomM={te:'Té',valve:'Valve',union:'Union'}[m]; Q.push({id:'M'+i+'_'+k, m, leg:i, k, titre:nomM+' : du raccord d\'avant au CENTRE', sous:'optionnel : sinon je la place', opt:true}); }); });
   return Q;
@@ -220,9 +223,9 @@ function questions(){
 let cur={po:'', f:0, c:null}; let hits=[];
 function fmt16(v){ if(v==null) return '—'; const po=Math.floor(v/16), f=v%16; const g=(a,b)=>b?g(b,a%b):a; const d=g(f,16); return (po?po:'')+(f?(po?' ':'')+(f/d)+'/'+(16/d):'')+' po'; }
 function valCur(){ return (parseInt(cur.po||'0',10)*16)+cur.f; }
-function valeurQ(Qc){ const m=etat.mes||{}; if(Qc.id.startsWith('L')) return (m.longs||{})[Qc.id.slice(1)]; if(Qc.id.startsWith('N')) return (m.niv||{})[Qc.id.slice(1)]; if(Qc.id.startsWith('axe0')) return m[Qc.id]===false?null:0; if(Qc.id==='nivegal') return m.nivegal===false?null:0;
+function valeurQ(Qc){ const m=etat.mes||{}; if(Qc.id==='dx'||Qc.id==='dy') return m[Qc.id]?m[Qc.id].v:null; if(Qc.id.startsWith('L')) return (m.longs||{})[Qc.id.slice(1)]; if(Qc.id.startsWith('N')) return (m.niv||{})[Qc.id.slice(1)]; if(Qc.id.startsWith('axe0')) return m[Qc.id]===false?null:0; if(Qc.id==='nivegal') return m.nivegal===false?null:0;
   if(Qc.id.startsWith('M')){ const [i,k]=Qc.id.slice(1).split('_'); return ((m.pos||{})[i]||{})[k]; } return m[Qc.id]; }
-function poserQ(Qc, v){ etat.mes=etat.mes||{}; if(Qc.id.startsWith('L')) (etat.mes.longs=etat.mes.longs||{})[Qc.id.slice(1)]=v; else if(Qc.id.startsWith('N')) (etat.mes.niv=etat.mes.niv||{})[Qc.id.slice(1)]=v; else if(Qc.id==='nivegal'){ etat.mes.nivegal=(v===0||v==null); } else if(Qc.id.startsWith('axe0')){ etat.mes[Qc.id]=(v===0||v==null)?true:false; etat.mes[Qc.id==='axe0x'?'dx':'dy']=(v===0||v==null)?null:{v, c:cur.c||(Qc.id==='axe0x'?'r':'b')}; }
+function poserQ(Qc, v){ etat.mes=etat.mes||{}; if(Qc.id==='dx'||Qc.id==='dy'){ etat.mes[Qc.id]=v==null?null:{v, c:cur.c}; return; } if(Qc.id.startsWith('L')) (etat.mes.longs=etat.mes.longs||{})[Qc.id.slice(1)]=v; else if(Qc.id.startsWith('N')) (etat.mes.niv=etat.mes.niv||{})[Qc.id.slice(1)]=v; else if(Qc.id==='nivegal'){ etat.mes.nivegal=(v===0||v==null); } else if(Qc.id.startsWith('axe0')){ etat.mes[Qc.id]=(v===0||v==null)?true:false; etat.mes[Qc.id==='axe0x'?'dx':'dy']=(v===0||v==null)?null:{v, c:cur.c||(Qc.id==='axe0x'?'r':'b')}; }
   else if(Qc.id.startsWith('M')){ const [i,k]=Qc.id.slice(1).split('_'); const P=(etat.mes.pos=etat.mes.pos||{}); (P[i]=P[i]||{})[k]=v; } else etat.mes[Qc.id]=v; }
 function connuL(k){ const m=etat.mes||{}; return ((m.longs||{})[k]!=null) || etat.cons.longs[k]!=null || !!etat.cons.min[k]; }
 function equations(){ // lignes du système A·L = b (on ne garde que A pour le rang)
@@ -250,7 +253,7 @@ function rendreMesure(q, B){
       const grp=etat.legs.map((l,k)=>k).filter(k=>(l=>l.sens.includes(plus)||l.sens.includes(moins))(etat.legs[k])&&!connuL(k)).map(k=>'T'+(k+1)); if(grp.length>1){ manq=manq.filter(x=>!grp.includes(x)); manq.push(grp.join(' ou ')); } }
     q.innerHTML=(complet()?'Toutes les cotes sont là : Envoyer.':(nbM+' mesure'+(nbM>1?'s':'')+' à prendre. Touche un pointillé ou un bouton.'))+'<span class="petit">'+(manq.length?'<b style="color:#ff8a80">À mesurer : '+manq.join(', ')+'</b> · ':'')+'⌂ = hauteur sous le plafond · T = longueur centre à centre · gris = je calcule</span>';
     // liste des cotes en boutons (les pastilles se cachent l'une l'autre quand le chemin est long, Michael 24 sept. 16:55)
-    Q.forEach((Qc,qi)=>{ const v=valeurQ(Qc); const lab=(Qc.id.startsWith('L')?'T'+(Qc.leg+1):(Qc.id.startsWith('N')?'⌂'+(Qc.leg+1):(Qc.id.startsWith('M')?({te:'T',valve:'V',union:'U'}[Qc.m]+(Qc.leg+1)):(Qc.id==='plafA'?'⌂A':(Qc.id==='plafB'?'⌂B':(Qc.id==='axe0x'?'↔ axe':(Qc.id==='axe0y'?'↕ axe':'◇')))))));
+    Q.forEach((Qc,qi)=>{ const v=valeurQ(Qc); const lab=(Qc.id.startsWith('L')?'T'+(Qc.leg+1):(Qc.id.startsWith('N')?'⌂'+(Qc.leg+1):(Qc.id.startsWith('M')?({te:'T',valve:'V',union:'U'}[Qc.m]+(Qc.leg+1)):(Qc.id==='plafA'?'⌂A':(Qc.id==='plafB'?'⌂B':(Qc.id==='axe0x'?'↔ axe':(Qc.id==='axe0y'?'↕ axe':(Qc.id==='dy'?'⇢ tap→arr':'◇'))))))));
       if(Qc.id==='nivegal'){ const on=(etat.mes||{}).nivegal!==false; const b=btn('⌂ même hauteur '+(on?'✔':'✘'), on?'vert':'or', ()=>{ etat.mes=etat.mes||{}; etat.mes.nivegal=!on; }); b.classList.add('k'); B.appendChild(b); return; }
       if(Qc.id.startsWith('axe0')){ const on=(etat.mes||{})[Qc.id]!==false; const b=btn(lab+' '+(on?'= 0 ✔':'écart donné'), on?'vert':'or', ()=>{ etat.sel=qi; cur={po:'',f:0,c:null}; }); b.classList.add('k'); B.appendChild(b); return; }
       if(Qc.fixe||Qc.min||(v==null&&Qc.id.startsWith('L')&&deduit(Qc.leg))){ const b=btn(lab+' '+(Qc.min?'min':(Qc.fixe?'fixe '+fmt16(etat.cons.longs[Qc.leg]):'calculé')), 'gris', ()=>false); b.classList.add('k'); b.style.opacity='.6'; B.appendChild(b); return; }
@@ -266,8 +269,9 @@ function rendreMesure(q, B){
   const fr=document.createElement('div'); fr.className='frac';
   for(let n=0;n<16;n++){ const b=document.createElement('button'); b.className='btn k'+(cur.f===n?' sel':''); b.textContent=n?fmt16(n).replace(' po',''):'0'; b.onclick=()=>{ cur.f=n; rendre(); }; fr.appendChild(b); }
   B.appendChild(fr);
+  if(sel.cote){ const cd=document.createElement('div'); cd.className='cote'; for(const [k,lab] of sel.cote){ const b=document.createElement('button'); b.className='btn '+(cur.c===k?'or':'gris'); b.textContent=lab; b.onclick=()=>{ cur.c=k; rendre(); }; cd.appendChild(b); } B.appendChild(cd); }
   if(sel.id.startsWith('axe0')){ const cd=document.createElement('div'); cd.className='cote'; for(const [k,lab] of (sel.id==='axe0x'?[['r','arrivée à DROITE'],['l','arrivée à GAUCHE']]:[['b','arrivée DEVANT'],['f','arrivée DERRIÈRE']])){ const b=document.createElement('button'); b.className='btn '+(cur.c===k?'or':'gris'); b.textContent=lab; b.onclick=()=>{ cur.c=k; rendre(); }; cd.appendChild(b); } B.appendChild(cd); }
-  B.appendChild(btn('OK ✔', 'vert large', ()=>{ const v=valCur(); if(v<=0&&!sel.id.startsWith('axe0')) return false; if(sel.id.startsWith('axe0')&&v>0&&!cur.c) return false; poserQ(sel, v); cur={po:'',f:0,c:null}; etat.sel=null; }));
+  B.appendChild(btn('OK ✔', 'vert large', ()=>{ const v=valCur(); if(v<=0&&!sel.id.startsWith('axe0')) return false; if((sel.id.startsWith('axe0')&&v>0||sel.cote)&&!cur.c) return false; poserQ(sel, v); cur={po:'',f:0,c:null}; etat.sel=null; }));
   B.appendChild(btn(sel.id.startsWith('axe0')?'= 0, revient dans l\'axe':(sel.opt?'Effacer / je place':'Annuler'), 'gris large', ()=>{ if(sel.id.startsWith('axe0')) poserQ(sel, 0); else if(sel.opt) poserQ(sel, null); cur={po:'',f:0,c:null}; etat.sel=null; }));
 }
 function rendreRelecture(q,B){ etape='mesures'; rendreMesure(q,B); }
@@ -296,6 +300,8 @@ function dessinerCotes(P3, S0){
     else if(Qc.id==='plafB'){ a=P3[N]; b=[P3[N][0],P3[N][1],zmax]; off=-30; }
     else if(Qc.id.startsWith('M')){ const l=etat.legs[Qc.leg]; const t=(Qc.k+1)/(l.marqueurs.length+1); const A=P3[Qc.leg], Bp=P3[Qc.leg+1]; a=A; b=[A[0]+(Bp[0]-A[0])*t, A[1]+(Bp[1]-A[1])*t, A[2]+(Bp[2]-A[2])*t]; off=(56+16*Qc.k); }
     else if(Qc.id.startsWith('N')){ const c=P3[Qc.leg]; a=c; b=[c[0],c[1],zmax]; off=44; }
+    else if(Qc.id==='dy'){ a=P3[0]; b=[P3[0][0],P3[N][1],P3[0][2]]; off=-60; }
+    else if(Qc.id==='diag'){ a=P3[0]; b=P3[N]; off=70; }
     else if(Qc.id.startsWith('axe0')||Qc.id==='nivegal'){ return; }
     if(!a) return;
     const [sa,sb]=perp(S(a),S(b),off); const v=valeurQ(Qc); const sel=etat.sel===qi; const calc=Qc.fixe||Qc.min||(v==null&&Qc.id.startsWith('L')&&deduit(Qc.leg));
