@@ -13,6 +13,7 @@
  #q{font-size:15px;font-weight:700;color:#ffd34d;margin:0 0 6px}
  #chemin{font-size:13px;color:#9fd0ff;margin:0 0 8px;line-height:1.35;max-height:52px;overflow:auto}
  .grille{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+ #btns .btn.k.or,#btns .btn.k.vert,#btns .btn.k.gris{grid-column:span 1;padding:8px 2px;font-size:13px}
  .btn{border:0;border-radius:10px;padding:9px 5px;font-size:14px;font-weight:700;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.6);cursor:pointer;
    background:linear-gradient(180deg,#5b8ad8 0%,#2f61b8 48%,#244f9f 52%,#3a74d6 100%);box-shadow:0 2px 4px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.55)}
  .btn.vert{background:linear-gradient(180deg,#7ee38a 0%,#2eaa48 48%,#22903a 52%,#4cc665 100%)}
@@ -202,6 +203,9 @@ function rendreMesure(q, B){
   const Q=questions(); const sel=etat.sel!=null?Q[etat.sel]:null;
   if(!sel){ const nb=Q.filter(x=>!x.opt&&valeurQ(x)==null).length;
     q.innerHTML=(complet()?'Toutes les cotes sont là.':'Touche un pointillé « ? » sur le dessin et entre la mesure.')+'<span class="petit">'+(nb?nb+' cote(s) obligatoire(s) manquante(s) · ':'')+'tout est au centre · jaune = à donner, gris = optionnel, vert = donné</span>';
+    // liste des cotes en boutons (les pastilles se cachent l'une l'autre quand le chemin est long, Michael 24 sept. 16:55)
+    Q.forEach((Qc,qi)=>{ const v=valeurQ(Qc); const lab=(Qc.id.startsWith('L')?'T'+(Qc.leg+1):(Qc.id.startsWith('M')?({te:'T',valve:'V',union:'U'}[Qc.m]+(Qc.leg+1)):(Qc.id==='plafA'?'⌂A':(Qc.id==='plafB'?'⌂B':'◇'))));
+      const b=btn(lab+' '+(v!=null?fmt16(v):'?'), v!=null?'vert':(Qc.opt?'gris':'or'), ()=>{ etat.sel=qi; cur={po:v?String(Math.floor(v/16)):'', f:v?v%16:0, c:null}; }); b.classList.add('k'); B.appendChild(b); });
     if(complet()) B.appendChild(btn('Envoyer à Claude ➤', 'vert large', envoyer, 'je calcule et je te dis les coupes'));
     return; }
   q.innerHTML=sel.titre+'<span class="petit">'+sel.sous+'</span>';
