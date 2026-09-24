@@ -218,10 +218,10 @@ function rendreMesure(q, B){
 }
 function rendreRelecture(q,B){ etape='mesures'; rendreMesure(q,B); }
 // dessin des cotes : appelé par dessiner() avec les points 3D et la projection écran
-function dessinerCotes(P3, S){
-  hits=[]; if(etape!=='mesures') return; const Q=questions(); const N=P3.length-1;
+function dessinerCotes(P3, S0){
+  hits=[]; if(etape!=='mesures') return; const Q=questions(); const N=P3.length-1; const S=p=>S0(rot(p));   // points 3D → tournés → écran
   const perp=(a,b,off)=>{ const vx=b[0]-a[0], vy=b[1]-a[1], n=Math.hypot(vx,vy)||1; return [[a[0]-vy/n*off,a[1]+vx/n*off],[b[0]-vy/n*off,b[1]+vx/n*off]]; };
-  const zmax=Math.max(...P3.map(p=>p[2]))+0.7;
+  const zmax=Math.max(...P3.map(p=>p[2]))+0.45;
   Q.forEach((Qc,qi)=>{
     let a,b,off=26;
     if(Qc.id.startsWith('L')){ a=P3[Qc.leg]; b=P3[Qc.leg+1]; }
