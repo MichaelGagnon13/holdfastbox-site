@@ -23,6 +23,13 @@
  .petit{font-size:12px;font-weight:400;display:block;opacity:.85}
  #annuler{font-size:13px;padding:8px 10px}
  #msg{font-size:12px;color:#8a93a3;margin-top:6px;min-height:14px}
+ .aff{grid-column:span 3;font-size:26px;font-weight:800;color:#7ee38a;text-align:center;padding:4px 0}
+ .pad{grid-column:span 3;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+ .frac{grid-column:span 3;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+ .cote{grid-column:span 3;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .btn.k{padding:11px 4px;font-size:16px}
+ .btn.sel{background:linear-gradient(180deg,#ffd34d 0%,#f39c12 48%,#d9820a 52%,#ffb42e 100%);color:#2a1b00;text-shadow:none}
+ #panneau{max-height:62vh;overflow:auto}
 </style></head><body>
 <div id="app">
  <div id="haut"><a class="btn gris" id="retour" href="/c/dernier.html" style="text-decoration:none;font-size:12px;padding:8px 10px">← sections</a><h1 id="titre">Section</h1><button class="btn gris" id="annuler">↶ Un pas</button><button class="btn rouge" id="effacer" style="font-size:13px;padding:8px 10px">✕ Tout effacer</button></div>
@@ -46,7 +53,7 @@ let nom = params.get('nom') || ('Section ' + slot);
 document.getElementById('titre').textContent = nom;
 
 // ---------- état ----------
-let etat = {depart:null, legs:[], fini:false};   // leg = {sens:[...], marqueurs:[], fin:null|'90'|'45'|'fin:xxx'}
+let etat = {depart:null, legs:[], fini:false, mes:{}, qi:0, retour:false};   // leg = {sens:[...], marqueurs:[], fin:null|'90'|'45'|'fin:xxx'}
 let etape = 'depart';                              // depart | sens | sens45 | bout | fin | termine
 let attente = null;                                // pour le 45 : première composante choisie
 let departEnvoye = false;
@@ -83,7 +90,7 @@ function dessiner(){
   const P=pts.map(p=>[p[0]+ox,p[1]+oy]);
   ctx.lineCap='round'; ctx.lineJoin='round';
   etat.legs.forEach((l,i)=>{ const a=P[i], b=P[i+1];
-    ctx.strokeStyle='#dfe6f0'; ctx.lineWidth=10; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+    const Qc=(etape==='mesures')?questions()[etat.qi]:null; ctx.strokeStyle=(Qc&&Qc.leg===i)?'#ffd34d':'#dfe6f0'; ctx.lineWidth=10; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
     l.marqueurs.forEach((m,k)=>{ const t=(k+1)/(l.marqueurs.length+1); const x=a[0]+(b[0]-a[0])*t, y=a[1]+(b[1]-a[1])*t;
       ctx.fillStyle = m==='valve'?'#f39c12':(m==='union'?'#2f61b8':'#1a9a3a'); ctx.beginPath(); ctx.arc(x,y,9,0,7); ctx.fill();
       if(m==='te'){ ctx.strokeStyle='#1a9a3a'; ctx.lineWidth=6; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y+22); ctx.stroke(); }
@@ -147,12 +154,64 @@ function rendre(){
     B.appendChild(btn('C\'est la FIN', 'rouge', ()=>{ etape='fin'; })); }
   else if(etape==='fin'){ q.textContent='La fin, c\'est quoi ?';
     for(const k in FINS) B.appendChild(btn(FINS[k], k==='te'?'vert':'or', ()=>{ legCourante().fin='fin:'+k; etat.fini=true; etape='termine'; })); }
-  else if(etape==='termine'){ q.textContent='Chemin complet. Envoie-le à Claude, puis donne les mesures à la voix.';
-    B.appendChild(btn('Envoyer à Claude ➤', 'vert large', envoyer)); }
+  else if(etape==='termine'){ q.textContent='Chemin complet. Maintenant les cotes au galon, une par écran.';
+    B.appendChild(btn('Mesures ➤', 'vert large', ()=>{ etat.qi=0; etat.retour=false; etape='mesures'; }, 'je te demande seulement ce qu\'il faut pour CE chemin')); }
+  else if(etape==='mesures'){ rendreMesure(q, B); }
+  else if(etape==='relire'){ rendreRelecture(q, B); }
   dessiner();
 }
 document.getElementById('effacer').onclick=()=>{ hist.push(JSON.stringify({etat,etape,attente})); etat={depart:null, legs:[], fini:false}; etape='depart'; attente=null; rendre(); };
 document.getElementById('annuler').onclick=()=>{ const h=hist.pop(); if(!h) return; const o=JSON.parse(h); etat=o.etat; etape=o.etape; attente=o.attente; rendre(); };
+
+// ---------- mesures : ce que CE chemin exige (même logique que ~/bin/chemin_auto.py) ----------
+function vecU(sens){ const v=[0,0,0]; for(const s of sens){ v[0]+=V3[s][0]; v[1]+=V3[s][1]; v[2]+=V3[s][2]; } const n=Math.hypot(...v)||1; return v.map(x=>x/n); }
+function rang(cols){ const m=cols.map(c=>c.slice()); let r=0; for(let k=0;k<3;k++){ let piv=-1; for(let i=r;i<m.length;i++){ if(Math.abs(m[i][k])>1e-9){piv=i;break;} } if(piv<0) continue;
+  [m[r],m[piv]]=[m[piv],m[r]]; for(let i=0;i<m.length;i++){ if(i!==r&&Math.abs(m[i][k])>1e-9){ const f=m[i][k]/m[r][k]; m[i]=m[i].map((a,j)=>a-f*m[r][j]); } } r++; } return r; }
+function questions(){
+  const U=etat.legs.map(l=>vecU(l.sens)); const Q=[];
+  const axes=[0,1,2].filter(k=>U.some(u=>Math.abs(u[k])>1e-9));
+  const dep=DEPARTS[etat.depart]||'départ'; const finL=etat.legs[etat.legs.length-1]; const finT=finL&&finL.fin&&finL.fin.startsWith('fin:')?finL.fin.slice(4):'bout';
+  const ptA = etat.depart==='tap'||etat.depart==='bague' ? 'face du '+dep.toLowerCase() : 'centre du '+dep.toLowerCase();
+  const ptB = finT==='bout' ? 'bout du tuyau d\'arrivée' : (finT==='bague' ? 'face de la bague' : 'centre du '+FINS[finT].toLowerCase());
+  if(axes.includes(2)){ Q.push({id:'plafA', titre:'Plafond → '+ptA, sous:'au galon, à la verticale', leg:0});
+                        Q.push({id:'plafB', titre:'Plafond → '+ptB, sous:'même plafond, à la verticale', leg:etat.legs.length-1}); }
+  if(axes.includes(0)) Q.push({id:'dx', titre:'Écart droite-gauche', sous:'arrivée → ligne laser verticale, lecture la plus courte', cote:[['r','arrivée à DROITE'],['l','arrivée à GAUCHE']]});
+  if(axes.includes(1)) Q.push({id:'dy', titre:'Écart devant-derrière', sous:'du départ à l\'arrivée, le long de la ligne', cote:[['f','arrivée DEVANT'],['b','arrivée DERRIÈRE']]});
+  const libres=[]; for(let k=0;k<U.length;k++){ const autres=U.filter((u,i)=>i!==k&&!libres.includes(i)); if(rang(autres.concat([U[k]]))===rang(autres)) libres.push(k); }
+  for(const k of libres) Q.push({id:'L'+k, titre:'Longueur du tronçon '+(k+1), sous:'il peut glisser sans changer l\'arrivée : mesure-le (jaune sur le dessin)', leg:k});
+  etat.legs.forEach((l,i)=>{ if(l.marqueurs.includes('te')) Q.push({id:'te'+i, titre:'Té : à combien du début du tronçon '+(i+1)+' ?', sous:'centre du té, depuis le raccord d\'avant', leg:i}); });
+  Q.push({id:'diag', titre:'Contrôle : diagonale départ → arrivée', sous:'au sol ou en direct ; facultatif mais ça attrape une erreur', opt:true});
+  return Q;
+}
+let cur={po:'', f:0, c:null};
+function fmt16(v){ if(v==null) return '—'; const po=Math.floor(v/16), f=v%16; const g=(a,b)=>b?g(b,a%b):a; const d=g(f,16); return (po?po:'')+(f?(po?' ':'')+(f/d)+'/'+(16/d):'')+' po'; }
+function valCur(){ return (parseInt(cur.po||'0',10)*16)+cur.f; }
+function rendreMesure(q, B){
+  const Q=questions(); if(etat.qi>=Q.length){ etape='relire'; rendreRelecture(q,B); return; }
+  const Qc=Q[etat.qi]; q.innerHTML=(etat.qi+1)+'/'+Q.length+' · '+Qc.titre+'<span class="petit">'+Qc.sous+'</span>';
+  const aff=document.createElement('div'); aff.className='aff'; aff.textContent=(cur.po||'0')+(cur.f?' '+fmt16(cur.f).replace(' po',''):'')+' po'+(Qc.cote&&cur.c?' · '+Qc.cote.find(x=>x[0]===cur.c)[1]:''); B.appendChild(aff);
+  const pad=document.createElement('div'); pad.className='pad';
+  for(const d of ['7','8','9','4','5','6','1','2','3','⌫','0','C']){ const b=document.createElement('button'); b.className='btn k'; b.textContent=d;
+    b.onclick=()=>{ if(d==='⌫') cur.po=cur.po.slice(0,-1); else if(d==='C'){cur.po='';cur.f=0;} else if(cur.po.length<3) cur.po+=d; rendre(); }; pad.appendChild(b); }
+  B.appendChild(pad);
+  const fr=document.createElement('div'); fr.className='frac';
+  for(let n=0;n<16;n++){ const b=document.createElement('button'); b.className='btn k'+(cur.f===n?' sel':''); b.textContent=n?fmt16(n).replace(' po',''):'0'; b.onclick=()=>{ cur.f=n; rendre(); }; fr.appendChild(b); }
+  B.appendChild(fr);
+  if(Qc.cote){ const cd=document.createElement('div'); cd.className='cote'; for(const [k,lab] of Qc.cote){ const b=document.createElement('button'); b.className='btn '+(cur.c===k?'or':'gris'); b.textContent=lab; b.onclick=()=>{ cur.c=k; rendre(); }; cd.appendChild(b); } B.appendChild(cd); }
+  const ok=btn('OK ✔', 'vert large', ()=>{ const v=valCur(); if(!Qc.opt && v<=0) return false; if(Qc.cote && !cur.c) return false;
+    if(Qc.id==='dx'||Qc.id==='dy') etat.mes[Qc.id]={v, c:cur.c}; else if(Qc.id.startsWith('L')) (etat.mes.longs=etat.mes.longs||{})[Qc.id.slice(1)]=v;
+    else if(Qc.id.startsWith('te')) ((etat.mes.pos=etat.mes.pos||{})[Qc.id.slice(2)]={te:v}); else etat.mes[Qc.id]=v||null;
+    cur={po:'',f:0,c:null}; if(etat.retour){ etat.retour=false; etape='relire'; } else etat.qi++; });
+  B.appendChild(ok);
+  if(Qc.opt){ B.appendChild(btn('Passer', 'gris large', ()=>{ etat.mes[Qc.id]=null; cur={po:'',f:0,c:null}; if(etat.retour){etat.retour=false; etape='relire';} else etat.qi++; })); }
+}
+function valeurDe(Qc){ const m=etat.mes; if(Qc.id==='dx'||Qc.id==='dy'){ const e=m[Qc.id]; return e?fmt16(e.v)+' · '+Qc.cote.find(x=>x[0]===e.c)[1]:'—'; }
+  if(Qc.id.startsWith('L')) return fmt16((m.longs||{})[Qc.id.slice(1)]); if(Qc.id.startsWith('te')) return fmt16(((m.pos||{})[Qc.id.slice(2)]||{}).te); return m[Qc.id]==null?(Qc.opt?'passé':'—'):fmt16(m[Qc.id]); }
+function rendreRelecture(q, B){
+  const Q=questions(); q.textContent='Relis. Touche une ligne pour la refaire.';
+  Q.forEach((Qc,i)=>{ const b=btn(Qc.titre.replace(/^Contrôle : /,'Contrôle '), 'large gris', ()=>{ etat.qi=i; etat.retour=true; etape='mesures'; }, valeurDe(Qc)); b.style.textAlign='left'; B.appendChild(b); });
+  B.appendChild(btn('Envoyer à Claude ➤', 'vert large', envoyer, 'je calcule et je te dis les coupes'));
+}
 
 // ---------- réseau ----------
 const API = (location.hostname.endsWith('ts.net')||location.hostname==='127.0.0.1') ? '' : 'https://michael-system-product-name.tail362e86.ts.net';
@@ -160,7 +219,7 @@ async function post(url, body){ const ctl=new AbortController(); setTimeout(()=>
   const r=await fetch(API+url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body),signal:ctl.signal}); return r.json(); }
 async function envoyerDepart(){ if(departEnvoye) return; departEnvoye=true;   // le chrono part au PREMIER geste de la section
   try{ const j=await post('/c/api/depart', {slot, nom}); document.getElementById('msg').textContent=j.message||''; }catch(e){ document.getElementById('msg').textContent='PC injoignable pour le chrono (pas grave, continue).'; } }
-async function envoyer(){ try{ const j=await post('/c/api/chemin', {slot, nom, depart:etat.depart, legs:etat.legs, phrase:phrase(), ts:Date.now()});
-    document.getElementById('msg').textContent=j.message||'envoyé'; }catch(e){ document.getElementById('msg').textContent='PC injoignable : dis le chemin à Claude au casque : '+phrase(); } }
+async function envoyer(){ try{ const j=await post('/c/api/chemin', {slot, nom, depart:etat.depart, legs:etat.legs, mesures:etat.mes, phrase:phrase(), ts:Date.now()});
+    document.getElementById('msg').textContent=j.message||'envoyé'; document.getElementById('q').textContent=j.message||'Envoyé.'; document.getElementById('btns').innerHTML=''; }catch(e){ document.getElementById('msg').textContent='PC injoignable : dis le chemin à Claude au casque : '+phrase(); } }
 addEventListener('resize', resize); resize(); rendre();
 </script></body></html>
