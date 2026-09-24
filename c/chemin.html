@@ -203,10 +203,12 @@ function questions(){
   const dep=DEPARTS[etat.depart]||'départ'; const ptA=(etat.depart==='tap'||etat.depart==='bague')?'face du '+dep.toLowerCase():'centre du '+dep.toLowerCase();
   const vert=etat.legs.some(estV);
   if(vert){ Q.push({id:'plafA', titre:'Plafond → '+ptA, sous:'au galon, à la verticale', opt:false, pt:'A'}); Q.push({id:'plafB', titre:'Plafond → arrivée (centre)', sous:'même plafond', opt:false, pt:'B'});
-    niveaux().forEach(g=>{ const k=g.legs[0]; if(k===0&&!vert) return; Q.push({id:'N'+k, leg:k, grp:g.legs, titre:'Plafond → axe du tuyau, tronçon'+(g.legs.length>1?'s '+g.legs.map(x=>x+1).join('-'):' '+(k+1)), sous:'la hauteur de cette ligne sous le plafond', opt:false}); }); }
+    const egal=(etat.mes||{}).nivegal!==false;
+    niveaux().forEach((g,gi)=>{ const k=g.legs[0]; Q.push({id:'N'+k, leg:k, grp:g.legs, titre:'Plafond → axe du tuyau, tronçon'+(g.legs.length>1?'s '+g.legs.map(x=>x+1).join('-'):' '+(k+1)), sous:(egal&&gi>0)?'même hauteur que la première ligne (décoche « même hauteur » si non)':'la hauteur de cette ligne sous le plafond', opt:egal&&gi>0}); }); }
   etat.legs.forEach((l,k)=>{ const fixe=etat.cons.longs[k]!=null, min=!!etat.cons.min[k]; if(estV(l)) return;   // les verticaux se déduisent des hauteurs
     Q.push({id:'L'+k, leg:k, titre:'Tronçon '+(k+1)+' : '+(k===0?ptA+' → centre du raccord':'centre à centre'), sous:'au galon, le long du mur', opt:false, fixe, min}); });
   etat.legs.forEach((l,k)=>{ if(!estV(l)) return; const fixe=etat.cons.longs[k]!=null, min=!!etat.cons.min[k]; Q.push({id:'L'+k, leg:k, titre:'Tronçon '+(k+1)+' (vertical) : centre à centre', sous:'optionnel : je le déduis des hauteurs', opt:true, fixe, min}); });
+  if(vert && niveaux().length>1) Q.push({id:'nivegal', titre:'Toutes les lignes à la même hauteur sous le plafond ?', sous:'oui par défaut · touche pour dire non', opt:true});
   const A=axesDetour(); if(A.x) Q.push({id:'axe0x', titre:'Droite-gauche : revient dans l\'axe du départ ?', sous:'écart 0 · touche pour donner l\'écart réel', opt:true, axe:0}); if(A.y) Q.push({id:'axe0y', titre:'Devant-derrière : revient dans l\'axe du départ ?', sous:'écart 0 · touche pour donner l\'écart réel', opt:true, axe:1});
   etat.legs.forEach((l,i)=>{ l.marqueurs.forEach((m,k)=>{ if(((etat.cons.pos[i]||{})[k])!=null) return; const nomM={te:'Té',valve:'Valve',union:'Union'}[m]; Q.push({id:'M'+i+'_'+k, m, leg:i, k, titre:nomM+' : du raccord d\'avant au CENTRE', sous:'optionnel : sinon je la place', opt:true}); }); });
   return Q;
@@ -214,9 +216,9 @@ function questions(){
 let cur={po:'', f:0, c:null}; let hits=[];
 function fmt16(v){ if(v==null) return '—'; const po=Math.floor(v/16), f=v%16; const g=(a,b)=>b?g(b,a%b):a; const d=g(f,16); return (po?po:'')+(f?(po?' ':'')+(f/d)+'/'+(16/d):'')+' po'; }
 function valCur(){ return (parseInt(cur.po||'0',10)*16)+cur.f; }
-function valeurQ(Qc){ const m=etat.mes||{}; if(Qc.id.startsWith('L')) return (m.longs||{})[Qc.id.slice(1)]; if(Qc.id.startsWith('N')) return (m.niv||{})[Qc.id.slice(1)]; if(Qc.id.startsWith('axe0')) return m[Qc.id]===false?null:0;
+function valeurQ(Qc){ const m=etat.mes||{}; if(Qc.id.startsWith('L')) return (m.longs||{})[Qc.id.slice(1)]; if(Qc.id.startsWith('N')) return (m.niv||{})[Qc.id.slice(1)]; if(Qc.id.startsWith('axe0')) return m[Qc.id]===false?null:0; if(Qc.id==='nivegal') return m.nivegal===false?null:0;
   if(Qc.id.startsWith('M')){ const [i,k]=Qc.id.slice(1).split('_'); return ((m.pos||{})[i]||{})[k]; } return m[Qc.id]; }
-function poserQ(Qc, v){ etat.mes=etat.mes||{}; if(Qc.id.startsWith('L')) (etat.mes.longs=etat.mes.longs||{})[Qc.id.slice(1)]=v; else if(Qc.id.startsWith('N')) (etat.mes.niv=etat.mes.niv||{})[Qc.id.slice(1)]=v; else if(Qc.id.startsWith('axe0')){ etat.mes[Qc.id]=(v===0||v==null)?true:false; etat.mes[Qc.id==='axe0x'?'dx':'dy']=(v===0||v==null)?null:{v, c:cur.c||(Qc.id==='axe0x'?'r':'b')}; }
+function poserQ(Qc, v){ etat.mes=etat.mes||{}; if(Qc.id.startsWith('L')) (etat.mes.longs=etat.mes.longs||{})[Qc.id.slice(1)]=v; else if(Qc.id.startsWith('N')) (etat.mes.niv=etat.mes.niv||{})[Qc.id.slice(1)]=v; else if(Qc.id==='nivegal'){ etat.mes.nivegal=(v===0||v==null); } else if(Qc.id.startsWith('axe0')){ etat.mes[Qc.id]=(v===0||v==null)?true:false; etat.mes[Qc.id==='axe0x'?'dx':'dy']=(v===0||v==null)?null:{v, c:cur.c||(Qc.id==='axe0x'?'r':'b')}; }
   else if(Qc.id.startsWith('M')){ const [i,k]=Qc.id.slice(1).split('_'); const P=(etat.mes.pos=etat.mes.pos||{}); (P[i]=P[i]||{})[k]=v; } else etat.mes[Qc.id]=v; }
 function connuL(k){ const m=etat.mes||{}; return ((m.longs||{})[k]!=null) || etat.cons.longs[k]!=null || !!etat.cons.min[k]; }
 function equations(){ // lignes du système A·L = b (on ne garde que A pour le rang)
@@ -224,6 +226,7 @@ function equations(){ // lignes du système A·L = b (on ne garde que A pour le 
   for(let k=0;k<N;k++){ if(connuL(k)){ const r=new Array(N).fill(0); r[k]=1; rows.push(r); } }
   if(m.plafA!=null&&m.plafB!=null) rows.push(U.map(u=>u[2]));
   if(m.plafA!=null) for(const k in (m.niv||{})){ if(m.niv[k]==null) continue; const r=new Array(N).fill(0); for(let i=0;i<+k;i++) r[i]=U[i][2]; rows.push(r); }   // z du début du tronçon k = plafA − niv_k
+  if(m.nivegal!==false){ const G=niveaux(); for(let gi=1;gi<G.length;gi++){ const k0=G[0].legs[0], kg=G[gi].legs[0]; const r=new Array(N).fill(0); for(let i=0;i<kg;i++) r[i]+=U[i][2]; for(let i=0;i<k0;i++) r[i]-=U[i][2]; rows.push(r); } }
   if(m.dx || m.axe0x!==false && axesDetour().x) rows.push(U.map(u=>u[0]));
   if(m.dy || m.axe0y!==false && axesDetour().y && m.axe0y===true) rows.push(U.map(u=>u[1]));
   return rows;
@@ -238,12 +241,13 @@ function rendreMesure(q, B){
   if(!sel){ const nb=Q.filter(x=>!x.opt&&valeurQ(x)==null).length;
     // nombre réel de mesures = inconnues − rang (+1 si le plafond au départ n'est pas encore donné, il sert à toutes les hauteurs)
     const N=etat.legs.length, m0=etat.mes||{}; const nbM=complet()?0:(N-rangN(equations(),N)+((etat.legs.some(estV)&&m0.plafA==null)?1:0));
-    let manq=complet()?[]:Q.filter(x=>!x.opt&&valeurQ(x)==null&&!(x.id.startsWith('L')&&deduit(x.leg))).map(x=>x.id.startsWith('L')?'T'+(x.leg+1):(x.id.startsWith('N')?'⌂'+(x.leg+1):(x.id==='plafA'?'⌂A':'⌂B')));
+    let manq=complet()?[]:Q.filter(x=>!x.opt&&valeurQ(x)==null&&!(x.id.startsWith('L')&&deduit(x.leg))&&!(x.id.startsWith('N')&&etat.legs.some(estV)&&false)).map(x=>x.id.startsWith('L')?'T'+(x.leg+1):(x.id.startsWith('N')?'⌂'+(x.leg+1):(x.id==='plafA'?'⌂A':'⌂B')));
     const Ax=axesDetour(); for(const [ax,plus,moins] of [['x','r','l'],['y','b','f']]){ if(!Ax[ax]||(ax==='x'?m0.axe0x===false:m0.axe0y!==true)) continue;   // « revient dans l'axe » : un seul des deux suffit
       const grp=etat.legs.map((l,k)=>k).filter(k=>(l=>l.sens.includes(plus)||l.sens.includes(moins))(etat.legs[k])&&!connuL(k)).map(k=>'T'+(k+1)); if(grp.length>1){ manq=manq.filter(x=>!grp.includes(x)); manq.push(grp.join(' ou ')); } }
     q.innerHTML=(complet()?'Toutes les cotes sont là : Envoyer.':(nbM+' mesure'+(nbM>1?'s':'')+' à prendre. Touche un pointillé ou un bouton.'))+'<span class="petit">'+(manq.length?'<b style="color:#ff8a80">À mesurer : '+manq.join(', ')+'</b> · ':'')+'⌂ = hauteur sous le plafond · T = longueur centre à centre · gris = je calcule</span>';
     // liste des cotes en boutons (les pastilles se cachent l'une l'autre quand le chemin est long, Michael 24 sept. 16:55)
     Q.forEach((Qc,qi)=>{ const v=valeurQ(Qc); const lab=(Qc.id.startsWith('L')?'T'+(Qc.leg+1):(Qc.id.startsWith('N')?'⌂'+(Qc.leg+1):(Qc.id.startsWith('M')?({te:'T',valve:'V',union:'U'}[Qc.m]+(Qc.leg+1)):(Qc.id==='plafA'?'⌂A':(Qc.id==='plafB'?'⌂B':(Qc.id==='axe0x'?'↔ axe':(Qc.id==='axe0y'?'↕ axe':'◇')))))));
+      if(Qc.id==='nivegal'){ const on=(etat.mes||{}).nivegal!==false; const b=btn('⌂ même hauteur '+(on?'✔':'✘'), on?'vert':'or', ()=>{ etat.mes=etat.mes||{}; etat.mes.nivegal=!on; }); b.classList.add('k'); B.appendChild(b); return; }
       if(Qc.id.startsWith('axe0')){ const on=(etat.mes||{})[Qc.id]!==false; const b=btn(lab+' '+(on?'= 0 ✔':'écart donné'), on?'vert':'or', ()=>{ etat.sel=qi; cur={po:'',f:0,c:null}; }); b.classList.add('k'); B.appendChild(b); return; }
       if(Qc.fixe||Qc.min||(v==null&&Qc.id.startsWith('L')&&deduit(Qc.leg))){ const b=btn(lab+' '+(Qc.min?'min':(Qc.fixe?'fixe '+fmt16(etat.cons.longs[Qc.leg]):'calculé')), 'gris', ()=>false); b.classList.add('k'); b.style.opacity='.6'; B.appendChild(b); return; }
       const b=btn(lab+' '+(v!=null?fmt16(v):'?'), v!=null?'vert':(Qc.opt?'gris':'or'), ()=>{ etat.sel=qi; cur={po:v?String(Math.floor(v/16)):'', f:v?v%16:0, c:null}; }); b.classList.add('k'); B.appendChild(b); });
@@ -288,7 +292,7 @@ function dessinerCotes(P3, S0){
     else if(Qc.id==='plafB'){ a=P3[N]; b=[P3[N][0],P3[N][1],zmax]; off=-30; }
     else if(Qc.id.startsWith('M')){ const l=etat.legs[Qc.leg]; const t=(Qc.k+1)/(l.marqueurs.length+1); const A=P3[Qc.leg], Bp=P3[Qc.leg+1]; a=A; b=[A[0]+(Bp[0]-A[0])*t, A[1]+(Bp[1]-A[1])*t, A[2]+(Bp[2]-A[2])*t]; off=(56+16*Qc.k); }
     else if(Qc.id.startsWith('N')){ const c=P3[Qc.leg]; a=c; b=[c[0],c[1],zmax]; off=44; }
-    else if(Qc.id.startsWith('axe0')){ return; }
+    else if(Qc.id.startsWith('axe0')||Qc.id==='nivegal'){ return; }
     if(!a) return;
     const [sa,sb]=perp(S(a),S(b),off); const v=valeurQ(Qc); const sel=etat.sel===qi; const calc=Qc.fixe||Qc.min||(v==null&&Qc.id.startsWith('L')&&deduit(Qc.leg));
     ctx.setLineDash([6,5]); ctx.lineWidth=sel?3:2; ctx.strokeStyle= calc?'#5a6272':(v!=null?'#7ee38a':(Qc.opt?'#8a93a3':'#ffd34d')); ctx.beginPath(); ctx.moveTo(sa[0],sa[1]); ctx.lineTo(sb[0],sb[1]); ctx.stroke(); ctx.setLineDash([]);
