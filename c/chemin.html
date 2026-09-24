@@ -195,6 +195,10 @@ function estV(l){ return l.sens.length===1 && (l.sens[0]==='u'||l.sens[0]==='d')
 function niveaux(){ // groupes de tronçons NON verticaux consécutifs au même niveau → une hauteur sous plafond par groupe
   const G=[]; let cur=null; etat.legs.forEach((l,k)=>{ if(estV(l)){ cur=null; return; } if(!cur){ cur={legs:[k]}; G.push(cur); } else cur.legs.push(k); }); return G;
 }
+function vertEntre(g1,g2){ // signe du vertical entre deux groupes (dernier vertical avant g2)
+  let s=0; for(let k=g1.legs[g1.legs.length-1]+1;k<g2.legs[0];k++){ const l=etat.legs[k]; if(estV(l)) s=l.sens[0]==='u'?1:-1; } return s; }
+function niveauxRevenus(){ // [ [gi, gj] ] : le groupe gi revient au niveau du groupe gj
+  const G=niveaux(); const R=[]; for(let gi=2;gi<G.length;gi++){ const a=vertEntre(G[gi-2],G[gi-1]), b=vertEntre(G[gi-1],G[gi]); if(a&&b&&a===-b) R.push([gi,gi-2]); } return R; }
 function axesDetour(){ // axe où le chemin part d'un côté puis revient (l puis r, f puis b…) : on propose « revient dans l'axe » (écart 0)
   const A={}; for(const [ax,plus,moins] of [['x','r','l'],['y','b','f']]){ let p=0,mn=0; etat.legs.forEach(l=>{ if(l.sens.includes(plus)) p++; if(l.sens.includes(moins)) mn++; }); if(p&&mn) A[ax]=true; } return A;
 }
@@ -203,12 +207,12 @@ function questions(){
   const dep=DEPARTS[etat.depart]||'départ'; const ptA=(etat.depart==='tap'||etat.depart==='bague')?'face du '+dep.toLowerCase():'centre du '+dep.toLowerCase();
   const vert=etat.legs.some(estV);
   if(vert){ Q.push({id:'plafA', titre:'Plafond → '+ptA, sous:'au galon, à la verticale', opt:false, pt:'A'}); Q.push({id:'plafB', titre:'Plafond → arrivée (centre)', sous:'même plafond', opt:false, pt:'B'});
-    const egal=(etat.mes||{}).nivegal!==false;
-    niveaux().forEach((g,gi)=>{ const k=g.legs[0]; Q.push({id:'N'+k, leg:k, grp:g.legs, titre:'Plafond → axe du tuyau, tronçon'+(g.legs.length>1?'s '+g.legs.map(x=>x+1).join('-'):' '+(k+1)), sous:(egal&&gi>0)?'même hauteur que la première ligne (décoche « même hauteur » si non)':'la hauteur de cette ligne sous le plafond', opt:egal&&gi>0}); }); }
+    const egal=(etat.mes||{}).nivegal!==false; const rev=egal?niveauxRevenus().map(x=>x[0]):[];
+    niveaux().forEach((g,gi)=>{ const k=g.legs[0]; const r=rev.includes(gi); Q.push({id:'N'+k, leg:k, grp:g.legs, titre:'Plafond → axe du tuyau, tronçon'+(g.legs.length>1?'s '+g.legs.map(x=>x+1).join('-'):' '+(k+1)), sous:r?'revient à la hauteur d\'avant le détour (décoche « même hauteur » si non)':'la hauteur de cette ligne sous le plafond', opt:r}); }); }
   etat.legs.forEach((l,k)=>{ const fixe=etat.cons.longs[k]!=null, min=!!etat.cons.min[k]; if(estV(l)) return;   // les verticaux se déduisent des hauteurs
     Q.push({id:'L'+k, leg:k, titre:'Tronçon '+(k+1)+' : '+(k===0?ptA+' → centre du raccord':'centre à centre'), sous:'au galon, le long du mur', opt:false, fixe, min}); });
   etat.legs.forEach((l,k)=>{ if(!estV(l)) return; const fixe=etat.cons.longs[k]!=null, min=!!etat.cons.min[k]; Q.push({id:'L'+k, leg:k, titre:'Tronçon '+(k+1)+' (vertical) : centre à centre', sous:'optionnel : je le déduis des hauteurs', opt:true, fixe, min}); });
-  if(vert && niveaux().length>1) Q.push({id:'nivegal', titre:'Toutes les lignes à la même hauteur sous le plafond ?', sous:'oui par défaut · touche pour dire non', opt:true});
+  if(vert && niveauxRevenus().length) Q.push({id:'nivegal', titre:'Après un détour (descend puis monte), la ligne revient à la même hauteur ?', sous:'oui par défaut · touche pour dire non', opt:true});
   const A=axesDetour(); if(A.x) Q.push({id:'axe0x', titre:'Droite-gauche : revient dans l\'axe du départ ?', sous:'écart 0 · touche pour donner l\'écart réel', opt:true, axe:0}); if(A.y) Q.push({id:'axe0y', titre:'Devant-derrière : revient dans l\'axe du départ ?', sous:'écart 0 · touche pour donner l\'écart réel', opt:true, axe:1});
   etat.legs.forEach((l,i)=>{ l.marqueurs.forEach((m,k)=>{ if(((etat.cons.pos[i]||{})[k])!=null) return; const nomM={te:'Té',valve:'Valve',union:'Union'}[m]; Q.push({id:'M'+i+'_'+k, m, leg:i, k, titre:nomM+' : du raccord d\'avant au CENTRE', sous:'optionnel : sinon je la place', opt:true}); }); });
   return Q;
@@ -226,7 +230,7 @@ function equations(){ // lignes du système A·L = b (on ne garde que A pour le 
   for(let k=0;k<N;k++){ if(connuL(k)){ const r=new Array(N).fill(0); r[k]=1; rows.push(r); } }
   if(m.plafA!=null&&m.plafB!=null) rows.push(U.map(u=>u[2]));
   if(m.plafA!=null) for(const k in (m.niv||{})){ if(m.niv[k]==null) continue; const r=new Array(N).fill(0); for(let i=0;i<+k;i++) r[i]=U[i][2]; rows.push(r); }   // z du début du tronçon k = plafA − niv_k
-  if(m.nivegal!==false){ const G=niveaux(); for(let gi=1;gi<G.length;gi++){ const k0=G[0].legs[0], kg=G[gi].legs[0]; const r=new Array(N).fill(0); for(let i=0;i<kg;i++) r[i]+=U[i][2]; for(let i=0;i<k0;i++) r[i]-=U[i][2]; rows.push(r); } }
+  if(m.nivegal!==false){ const G=niveaux(); for(const [gi,gj] of niveauxRevenus()){ if(((m.niv||{})[G[gi].legs[0]])!=null) continue; const k0=G[gj].legs[0], kg=G[gi].legs[0]; const r=new Array(N).fill(0); for(let i=0;i<kg;i++) r[i]+=U[i][2]; for(let i=0;i<k0;i++) r[i]-=U[i][2]; rows.push(r); } }
   if(m.dx || m.axe0x!==false && axesDetour().x) rows.push(U.map(u=>u[0]));
   if(m.dy || m.axe0y!==false && axesDetour().y && m.axe0y===true) rows.push(U.map(u=>u[1]));
   return rows;
