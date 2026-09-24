@@ -52,7 +52,7 @@ let nom = params.get('nom') || ('Section ' + slot);
 document.getElementById('titre').textContent = nom;
 
 // ---------- état ----------
-let etat = {depart:null, legs:[], fini:false, mes:{}, qi:0, retour:false};   // leg = {sens:[...], marqueurs:[], fin:null|'90'|'45'|'fin:xxx'}
+let etat = {depart:null, legs:[], fini:false, mes:{}, sel:null};   // leg = {sens:[...], marqueurs:[], fin:null|'90'|'45'|'fin:xxx'}
 let etape = 'depart';                              // depart | sens | sens45 | bout | fin | termine
 let attente = null;                                // pour le 45 : première composante choisie
 let departEnvoye = false;
@@ -97,7 +97,7 @@ function dessiner(){
   const p0=P[0]; for(const [v,lab] of T){ const V=S(v); ctx.strokeStyle='rgba(159,208,255,.55)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(p0[0],p0[1]); ctx.lineTo(V[0],V[1]); ctx.stroke(); ctx.fillStyle='rgba(159,208,255,.8)'; ctx.font='11px sans-serif'; ctx.textAlign='center'; ctx.fillText(lab, V[0], V[1]-4); }
   ctx.lineCap='round'; ctx.lineJoin='round';
   etat.legs.forEach((l,i)=>{ const a=P[i], b=P[i+1];
-    const Qc=(etape==='mesures')?questions()[etat.qi]:null; ctx.strokeStyle=(Qc&&Qc.leg===i)?'#ffd34d':'#dfe6f0'; ctx.lineWidth=10; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+    const Qs=(etape==='mesures'&&etat.sel!=null)?questions()[etat.sel]:null; ctx.strokeStyle=(Qs&&Qs.leg===i)?'#ffd34d':'#dfe6f0'; ctx.lineWidth=10; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
     l.marqueurs.forEach((m,k)=>{ const t=(k+1)/(l.marqueurs.length+1); const x=a[0]+(b[0]-a[0])*t, y=a[1]+(b[1]-a[1])*t;
       ctx.fillStyle = m==='valve'?'#f39c12':(m==='union'?'#2f61b8':'#1a9a3a'); ctx.beginPath(); ctx.arc(x,y,9,0,7); ctx.fill();
       if(m==='te'){ const D=S(rot([P3[i][0],P3[i][1],P3[i][2]-0.35])); const O=S(rot(P3[i])); ctx.strokeStyle='#1a9a3a'; ctx.lineWidth=6; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+(D[0]-O[0]),y+(D[1]-O[1])); ctx.stroke(); }
@@ -116,11 +116,12 @@ function dessiner(){
   ctx.fillStyle='#ffd34d'; ctx.beginPath(); ctx.arc(p0[0],p0[1],10,0,7); ctx.fill();
   ctx.font='bold 13px sans-serif'; ctx.textAlign='left'; ctx.fillText(DEPARTS[etat.depart].toUpperCase(), p0[0]+14, p0[1]+5);
   if(!etat.fini){ const q=P[P.length-1]; ctx.strokeStyle='#ffd34d'; ctx.lineWidth=2; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.arc(q[0],q[1],16,0,7); ctx.stroke(); ctx.setLineDash([]); }
+  dessinerCotes(P3, S);
   ctx.fillStyle='rgba(138,147,163,.7)'; ctx.font='11px sans-serif'; ctx.textAlign='right'; ctx.fillText('tourne au doigt · double-tape = vue de départ', W-8, H-8);
 }
 cv.addEventListener('pointerdown', e=>{ drag={x:e.clientX,y:e.clientY,yaw,pitch}; cv.setPointerCapture(e.pointerId); });
 cv.addEventListener('pointermove', e=>{ if(!drag) return; yaw=drag.yaw+(e.clientX-drag.x)*0.012; pitch=Math.max(-1.4,Math.min(1.4,drag.pitch+(e.clientY-drag.y)*0.012)); dessiner(); });
-cv.addEventListener('pointerup', ()=>{ drag=null; }); cv.addEventListener('pointercancel', ()=>{ drag=null; });
+cv.addEventListener('pointercancel', ()=>{ drag=null; });
 cv.addEventListener('dblclick', ()=>{ yaw=-0.62; pitch=0.42; dessiner(); });
 
 // ---------- panneau de questions ----------
@@ -163,40 +164,48 @@ function rendre(){
   else if(etape==='fin'){ q.textContent='La fin, c\'est quoi ?';
     for(const k in FINS) B.appendChild(btn(FINS[k], k==='te'?'vert':'or', ()=>{ legCourante().fin='fin:'+k; etat.fini=true; etape='termine'; envoyerForme(); })); }
   else if(etape==='termine'){ q.textContent='Chemin complet. Maintenant les cotes au galon, une par écran.';
-    B.appendChild(btn('Mesures ➤', 'vert large', ()=>{ etat.qi=0; etat.retour=false; etape='mesures'; }, 'je te demande seulement ce qu\'il faut pour CE chemin')); }
+    B.appendChild(btn('Mesures ➤', 'vert large', ()=>{ etat.sel=null; etape='mesures'; }, 'les cotes en pointillés sur le dessin')); }
   else if(etape==='mesures'){ rendreMesure(q, B); }
   else if(etape==='relire'){ rendreRelecture(q, B); }
   dessiner();
 }
 document.getElementById('annuler').onclick=()=>{ const h=hist.pop(); if(!h) return; const o=JSON.parse(h); etat=o.etat; etape=o.etape; attente=o.attente; rendre(); };
 
-// ---------- mesures : ce que CE chemin exige (même logique que ~/bin/chemin_auto.py) ----------
+// ---------- mesures : pointillés de cote sur le 3D (Michael 24 sept. : « pas à la volée avec du texte ») ----------
 function vecU(sens){ const v=[0,0,0]; for(const s of sens){ v[0]+=V3[s][0]; v[1]+=V3[s][1]; v[2]+=V3[s][2]; } const n=Math.hypot(...v)||1; return v.map(x=>x/n); }
-function rang(cols){ const m=cols.map(c=>c.slice()); let r=0; for(let k=0;k<3;k++){ let piv=-1; for(let i=r;i<m.length;i++){ if(Math.abs(m[i][k])>1e-9){piv=i;break;} } if(piv<0) continue;
-  [m[r],m[piv]]=[m[piv],m[r]]; for(let i=0;i<m.length;i++){ if(i!==r&&Math.abs(m[i][k])>1e-9){ const f=m[i][k]/m[r][k]; m[i]=m[i].map((a,j)=>a-f*m[r][j]); } } r++; } return r; }
 function questions(){
-  const U=etat.legs.map(l=>vecU(l.sens)); const Q=[];
-  const axes=[0,1,2].filter(k=>U.some(u=>Math.abs(u[k])>1e-9));
-  const dep=DEPARTS[etat.depart]||'départ'; const finL=etat.legs[etat.legs.length-1]; const finT=finL&&finL.fin&&finL.fin.startsWith('fin:')?finL.fin.slice(4):'bout';
-  const ptA = etat.depart==='tap'||etat.depart==='bague' ? 'face du '+dep.toLowerCase() : 'centre du '+dep.toLowerCase();
-  const ptB = finT==='bout' ? 'bout du tuyau d\'arrivée' : (finT==='bague' ? 'face de la bague' : 'centre du '+FINS[finT].toLowerCase());
-  if(axes.includes(2)){ Q.push({id:'plafA', titre:'Plafond → '+ptA, sous:'au galon, à la verticale', leg:0});
-                        Q.push({id:'plafB', titre:'Plafond → '+ptB, sous:'même plafond, à la verticale', leg:etat.legs.length-1}); }
-  if(axes.includes(0)) Q.push({id:'dx', titre:'Écart droite-gauche', sous:'arrivée → ligne laser verticale, lecture la plus courte', cote:[['r','arrivée à DROITE'],['l','arrivée à GAUCHE']]});
-  if(axes.includes(1)) Q.push({id:'dy', titre:'Écart devant-derrière', sous:'du départ à l\'arrivée, le long de la ligne', cote:[['f','arrivée DEVANT'],['b','arrivée DERRIÈRE']]});
-  const libres=[]; for(let k=U.length-1;k>=0;k--){ const autres=U.filter((u,i)=>i!==k&&!libres.includes(i)); if(rang(autres.concat([U[k]]))===rang(autres)) libres.push(k); }   // du bout vers le tap : jamais le premier vertical si on peut l'éviter
-  for(const k of libres.slice().reverse()) Q.push({id:'L'+k, titre:'Longueur du tronçon '+(k+1), sous:'il peut glisser sans changer l\'arrivée : mesure-le (jaune sur le dessin)', leg:k});
-  etat.legs.forEach((l,i)=>{ l.marqueurs.forEach((m,k)=>{ const nomM={te:'Té',valve:'Valve',union:'Union'}[m]; Q.push({id:'M'+i+'_'+k, m, titre:nomM+' du tronçon '+(i+1)+' : à combien du raccord d\'avant ?', sous:(m==='te'?'centre du té':'face avant')+' depuis le début du tronçon · Passer = je la place moi-même', leg:i, opt:true}); }); });
-  Q.push({id:'diag', titre:'Contrôle : diagonale départ → arrivée', sous:'au sol ou en direct ; facultatif mais ça attrape une erreur', opt:true});
+  // une cote par tronçon (centre à centre ; face→centre pour le premier depuis un tap/bague), + plafonds (optionnel, pour déduire un vertical),
+  // + position de chaque valve/union/té (optionnel : sinon je place), + diagonale (optionnel). Tout est CENTRE.
+  const Q=[]; const N=etat.legs.length; if(!N) return Q;
+  const dep=DEPARTS[etat.depart]||'départ'; const ptA=(etat.depart==='tap'||etat.depart==='bague')?'face du '+dep.toLowerCase():'centre du '+dep.toLowerCase();
+  etat.legs.forEach((l,k)=>{ const deb=k===0?ptA:'centre du raccord'; Q.push({id:'L'+k, leg:k, titre:'Tronçon '+(k+1)+' : '+(k===0?ptA+' → centre du raccord':'centre à centre'), sous:'au galon', opt:false}); });
+  const vert=etat.legs.some(l=>l.sens.includes('u')||l.sens.includes('d'));
+  if(vert){ Q.push({id:'plafA', titre:'Plafond → '+ptA, sous:'optionnel : pour déduire un vertical', opt:true, pt:'A'}); Q.push({id:'plafB', titre:'Plafond → arrivée', sous:'optionnel', opt:true, pt:'B'}); }
+  etat.legs.forEach((l,i)=>{ l.marqueurs.forEach((m,k)=>{ const nomM={te:'Té',valve:'Valve',union:'Union'}[m]; Q.push({id:'M'+i+'_'+k, m, leg:i, k, titre:nomM+' : du raccord d\'avant au CENTRE', sous:'optionnel : sinon je la place', opt:true}); }); });
+  Q.push({id:'diag', titre:'Diagonale départ → arrivée', sous:'contrôle, optionnel', opt:true});
   return Q;
 }
-let cur={po:'', f:0, c:null};
+let cur={po:'', f:0, c:null}; let hits=[];
 function fmt16(v){ if(v==null) return '—'; const po=Math.floor(v/16), f=v%16; const g=(a,b)=>b?g(b,a%b):a; const d=g(f,16); return (po?po:'')+(f?(po?' ':'')+(f/d)+'/'+(16/d):'')+' po'; }
 function valCur(){ return (parseInt(cur.po||'0',10)*16)+cur.f; }
+function valeurQ(Qc){ const m=etat.mes||{}; if(Qc.id.startsWith('L')) return (m.longs||{})[Qc.id.slice(1)];
+  if(Qc.id.startsWith('M')){ const [i,k]=Qc.id.slice(1).split('_'); return ((m.pos||{})[i]||{})[k]; } return m[Qc.id]; }
+function poserQ(Qc, v){ etat.mes=etat.mes||{}; if(Qc.id.startsWith('L')) (etat.mes.longs=etat.mes.longs||{})[Qc.id.slice(1)]=v;
+  else if(Qc.id.startsWith('M')){ const [i,k]=Qc.id.slice(1).split('_'); const P=(etat.mes.pos=etat.mes.pos||{}); (P[i]=P[i]||{})[k]=v; } else etat.mes[Qc.id]=v; }
+function complet(){ // toutes les longueurs, sauf UN vertical si les deux plafonds sont donnés
+  const m=etat.mes||{}; const longs=m.longs||{}; const manq=etat.legs.map((l,k)=>k).filter(k=>longs[k]==null);
+  if(!manq.length) return true;
+  if(manq.length===1 && m.plafA!=null && m.plafB!=null){ const l=etat.legs[manq[0]]; return l.sens.length===1 && (l.sens[0]==='u'||l.sens[0]==='d'); }
+  return false;
+}
 function rendreMesure(q, B){
-  const Q=questions(); if(etat.qi>=Q.length){ etape='relire'; rendreRelecture(q,B); return; }
-  const Qc=Q[etat.qi]; q.innerHTML=(etat.qi+1)+'/'+Q.length+' · '+Qc.titre+'<span class="petit">'+Qc.sous+'</span>';
-  const aff=document.createElement('div'); aff.className='aff'; aff.textContent=(cur.po||'0')+(cur.f?' '+fmt16(cur.f).replace(' po',''):'')+' po'+(Qc.cote&&cur.c?' · '+Qc.cote.find(x=>x[0]===cur.c)[1]:''); B.appendChild(aff);
+  const Q=questions(); const sel=etat.sel!=null?Q[etat.sel]:null;
+  if(!sel){ const nb=Q.filter(x=>!x.opt&&valeurQ(x)==null).length;
+    q.innerHTML=(complet()?'Toutes les cotes sont là.':'Touche un pointillé « ? » sur le dessin et entre la mesure.')+'<span class="petit">'+(nb?nb+' cote(s) obligatoire(s) manquante(s) · ':'')+'tout est au centre · jaune = à donner, gris = optionnel, vert = donné</span>';
+    if(complet()) B.appendChild(btn('Envoyer à Claude ➤', 'vert large', envoyer, 'je calcule et je te dis les coupes'));
+    return; }
+  q.innerHTML=sel.titre+'<span class="petit">'+sel.sous+'</span>';
+  const aff=document.createElement('div'); aff.className='aff'; aff.textContent=(cur.po||'0')+(cur.f?' '+fmt16(cur.f).replace(' po',''):'')+' po'; B.appendChild(aff);
   const pad=document.createElement('div'); pad.className='pad';
   for(const d of ['7','8','9','4','5','6','1','2','3','⌫','0','C']){ const b=document.createElement('button'); b.className='btn k'; b.textContent=d;
     b.onclick=()=>{ if(d==='⌫') cur.po=cur.po.slice(0,-1); else if(d==='C'){cur.po='';cur.f=0;} else if(cur.po.length<3) cur.po+=d; rendre(); }; pad.appendChild(b); }
@@ -204,21 +213,38 @@ function rendreMesure(q, B){
   const fr=document.createElement('div'); fr.className='frac';
   for(let n=0;n<16;n++){ const b=document.createElement('button'); b.className='btn k'+(cur.f===n?' sel':''); b.textContent=n?fmt16(n).replace(' po',''):'0'; b.onclick=()=>{ cur.f=n; rendre(); }; fr.appendChild(b); }
   B.appendChild(fr);
-  if(Qc.cote){ const cd=document.createElement('div'); cd.className='cote'; for(const [k,lab] of Qc.cote){ const b=document.createElement('button'); b.className='btn '+(cur.c===k?'or':'gris'); b.textContent=lab; b.onclick=()=>{ cur.c=k; rendre(); }; cd.appendChild(b); } B.appendChild(cd); }
-  const ok=btn('OK ✔', 'vert large', ()=>{ const v=valCur(); if(!Qc.opt && v<=0) return false; if(Qc.cote && !cur.c) return false;
-    if(Qc.id==='dx'||Qc.id==='dy') etat.mes[Qc.id]={v, c:cur.c}; else if(Qc.id.startsWith('L')) (etat.mes.longs=etat.mes.longs||{})[Qc.id.slice(1)]=v;
-    else if(Qc.id.startsWith('M')){ const [i,k]=Qc.id.slice(1).split('_'); const P=(etat.mes.pos=etat.mes.pos||{}); (P[i]=P[i]||{})[k]=v||null; } else etat.mes[Qc.id]=v||null;
-    cur={po:'',f:0,c:null}; if(etat.retour){ etat.retour=false; etape='relire'; } else etat.qi++; });
-  B.appendChild(ok);
-  if(Qc.opt){ B.appendChild(btn('Passer', 'gris large', ()=>{ if(Qc.id.startsWith('M')){ const [i,k]=Qc.id.slice(1).split('_'); const P=(etat.mes.pos=etat.mes.pos||{}); (P[i]=P[i]||{})[k]=null; } else etat.mes[Qc.id]=null; cur={po:'',f:0,c:null}; if(etat.retour){etat.retour=false; etape='relire';} else etat.qi++; })); }
+  B.appendChild(btn('OK ✔', 'vert large', ()=>{ const v=valCur(); if(v<=0) return false; poserQ(sel, v); cur={po:'',f:0,c:null}; etat.sel=null; }));
+  B.appendChild(btn(sel.opt?'Effacer / je place':'Annuler', 'gris large', ()=>{ if(sel.opt) poserQ(sel, null); cur={po:'',f:0,c:null}; etat.sel=null; }));
 }
-function valeurDe(Qc){ const m=etat.mes; if(Qc.id==='dx'||Qc.id==='dy'){ const e=m[Qc.id]; return e?fmt16(e.v)+' · '+Qc.cote.find(x=>x[0]===e.c)[1]:'—'; }
-  if(Qc.id.startsWith('L')) return fmt16((m.longs||{})[Qc.id.slice(1)]); if(Qc.id.startsWith('M')){ const [i,k]=Qc.id.slice(1).split('_'); const v=((m.pos||{})[i]||{})[k]; return v==null?'placée par Claude':fmt16(v); } return m[Qc.id]==null?(Qc.opt?'passé':'—'):fmt16(m[Qc.id]); }
-function rendreRelecture(q, B){
-  const Q=questions(); q.textContent='Relis. Touche une ligne pour la refaire.';
-  Q.forEach((Qc,i)=>{ const b=btn(Qc.titre.replace(/^Contrôle : /,'Contrôle '), 'large gris', ()=>{ etat.qi=i; etat.retour=true; etape='mesures'; }, valeurDe(Qc)); b.style.textAlign='left'; B.appendChild(b); });
-  B.appendChild(btn('Envoyer à Claude ➤', 'vert large', envoyer, 'je calcule et je te dis les coupes'));
+function rendreRelecture(q,B){ etape='mesures'; rendreMesure(q,B); }
+// dessin des cotes : appelé par dessiner() avec les points 3D et la projection écran
+function dessinerCotes(P3, S){
+  hits=[]; if(etape!=='mesures') return; const Q=questions(); const N=P3.length-1;
+  const perp=(a,b,off)=>{ const vx=b[0]-a[0], vy=b[1]-a[1], n=Math.hypot(vx,vy)||1; return [[a[0]-vy/n*off,a[1]+vx/n*off],[b[0]-vy/n*off,b[1]+vx/n*off]]; };
+  const zmax=Math.max(...P3.map(p=>p[2]))+0.7;
+  Q.forEach((Qc,qi)=>{
+    let a,b,off=26;
+    if(Qc.id.startsWith('L')){ a=P3[Qc.leg]; b=P3[Qc.leg+1]; }
+    else if(Qc.id==='plafA'){ a=P3[0]; b=[P3[0][0],P3[0][1],zmax]; off=14; }
+    else if(Qc.id==='plafB'){ a=P3[N]; b=[P3[N][0],P3[N][1],zmax]; off=14; }
+    else if(Qc.id.startsWith('M')){ const l=etat.legs[Qc.leg]; const t=(Qc.k+1)/(l.marqueurs.length+1); const A=P3[Qc.leg], Bp=P3[Qc.leg+1]; a=A; b=[A[0]+(Bp[0]-A[0])*t, A[1]+(Bp[1]-A[1])*t, A[2]+(Bp[2]-A[2])*t]; off=-26; }
+    else if(Qc.id==='diag'){ a=P3[0]; b=P3[N]; off=40; }
+    if(!a) return;
+    const [sa,sb]=perp(S(a),S(b),off); const v=valeurQ(Qc); const sel=etat.sel===qi;
+    ctx.setLineDash([6,5]); ctx.lineWidth=sel?3:2; ctx.strokeStyle= v!=null?'#7ee38a':(Qc.opt?'#8a93a3':'#ffd34d'); ctx.beginPath(); ctx.moveTo(sa[0],sa[1]); ctx.lineTo(sb[0],sb[1]); ctx.stroke(); ctx.setLineDash([]);
+    // petits traits d'appel
+    ctx.lineWidth=1; ctx.beginPath(); const A0=S(a),B0=S(b); ctx.moveTo(A0[0],A0[1]); ctx.lineTo(sa[0],sa[1]); ctx.moveTo(B0[0],B0[1]); ctx.lineTo(sb[0],sb[1]); ctx.stroke();
+    const mx=(sa[0]+sb[0])/2, my=(sa[1]+sb[1])/2; const txt=v!=null?fmt16(v):'?'; const pre=Qc.id.startsWith('M')?({te:'T',valve:'V',union:'U'}[Qc.m]+' '):(Qc.id==='plafA'||Qc.id==='plafB'?'⌂ ':(Qc.id==='diag'?'◇ ':''));
+    ctx.font='bold 13px sans-serif'; const w=ctx.measureText(pre+txt).width+16;
+    ctx.fillStyle= v!=null?'#2eaa48':(Qc.opt?'#4a5263':'#f39c12'); if(sel) ctx.fillStyle='#ffd34d';
+    ctx.beginPath(); ctx.roundRect(mx-w/2,my-12,w,24,8); ctx.fill();
+    ctx.fillStyle= (v==null&&Qc.opt&&!sel)?'#dfe6f0':'#111'; ctx.textAlign='center'; ctx.fillText(pre+txt, mx, my+5);
+    hits.push({x:mx,y:my,w:w/2+8,qi});
+  });
 }
+cv.addEventListener('pointerup', e=>{ if(!drag) return; const moved=Math.hypot(e.clientX-drag.x,e.clientY-drag.y); drag=null;
+  if(moved>6||etape!=='mesures') return; const r=cv.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top;
+  const h=hits.find(h=>Math.abs(x-h.x)<=h.w&&Math.abs(y-h.y)<=16); if(h){ hist.push(JSON.stringify({etat,etape,attente})); etat.sel=h.qi; const v=valeurQ(questions()[h.qi]); cur={po:v?String(Math.floor(v/16)):'', f:v?v%16:0, c:null}; rendre(); } });
 
 // ---------- réseau ----------
 const API = (location.hostname.endsWith('ts.net')||location.hostname==='127.0.0.1') ? '' : 'https://michael-system-product-name.tail362e86.ts.net';
