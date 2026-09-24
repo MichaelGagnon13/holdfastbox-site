@@ -85,9 +85,9 @@ function dessiner(){
   if(!etat.depart){ ctx.fillStyle='#8a93a3'; ctx.font='15px sans-serif'; ctx.textAlign='center'; ctx.fillText('Le chemin se dessine ici, en 3D : tourne-le au doigt', W/2, H/2); return; }
   const P3=p3(); const R=P3.map(rot);
   // sol : grille sous le point le plus bas, tournée avec le reste
-  const zmin=Math.min(...P3.map(p=>p[2]))-0.3, xs=P3.map(p=>p[0]), ys=P3.map(p=>p[1]);
-  const gx0=Math.floor(Math.min(...xs))-1, gx1=Math.ceil(Math.max(...xs))+1, gy0=Math.floor(Math.min(...ys))-1, gy1=Math.ceil(Math.max(...ys))+1;
-  const G=[]; for(let x=gx0;x<=gx1;x++) G.push([rot([x,gy0,zmin]),rot([x,gy1,zmin])]); for(let y=gy0;y<=gy1;y++) G.push([rot([gx0,y,zmin]),rot([gx1,y,zmin])]);
+  const zmin=Math.min(...P3.map(p=>p[2]))-0.15, xs=P3.map(p=>p[0]), ys=P3.map(p=>p[1]);
+  const gx0=Math.floor(Math.min(...xs))-0.5, gx1=Math.ceil(Math.max(...xs))+0.5, gy0=Math.floor(Math.min(...ys))-0.5, gy1=Math.ceil(Math.max(...ys))+0.5;
+  const G=[]; for(let x=gx0;x<=gx1;x+=0.5) G.push([rot([x,gy0,zmin]),rot([x,gy1,zmin])]); for(let y=gy0;y<=gy1;y+=0.5) G.push([rot([gx0,y,zmin]),rot([gx1,y,zmin])]);
   // triade au départ
   const T=[[rot([0.55,0,0]),'droite'],[rot([0,-0.55,0]),'tout droit'],[rot([0,0,0.55]),'haut']];
   const all=R.concat(G.flat()); let minx=Math.min(...all.map(p=>p[0])), maxx=Math.max(...all.map(p=>p[0])), miny=Math.min(...all.map(p=>p[1])), maxy=Math.max(...all.map(p=>p[1]));
