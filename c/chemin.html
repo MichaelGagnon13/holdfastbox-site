@@ -161,7 +161,7 @@ function rendre(){
     B.appendChild(btn('Union', '', ()=>{ legCourante().marqueurs.push('union'); }, 'en ligne, ça continue'));
     B.appendChild(btn('C\'est la FIN', 'rouge', ()=>{ etape='fin'; })); }
   else if(etape==='fin'){ q.textContent='La fin, c\'est quoi ?';
-    for(const k in FINS) B.appendChild(btn(FINS[k], k==='te'?'vert':'or', ()=>{ legCourante().fin='fin:'+k; etat.fini=true; etape='termine'; })); }
+    for(const k in FINS) B.appendChild(btn(FINS[k], k==='te'?'vert':'or', ()=>{ legCourante().fin='fin:'+k; etat.fini=true; etape='termine'; envoyerForme(); })); }
   else if(etape==='termine'){ q.textContent='Chemin complet. Maintenant les cotes au galon, une par écran.';
     B.appendChild(btn('Mesures ➤', 'vert large', ()=>{ etat.qi=0; etat.retour=false; etape='mesures'; }, 'je te demande seulement ce qu\'il faut pour CE chemin')); }
   else if(etape==='mesures'){ rendreMesure(q, B); }
@@ -226,6 +226,8 @@ async function post(url, body){ const ctl=new AbortController(); setTimeout(()=>
   const r=await fetch(API+url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body),signal:ctl.signal}); return r.json(); }
 async function envoyerDepart(){ if(departEnvoye) return; departEnvoye=true;   // le chrono part au PREMIER geste de la section
   try{ const j=await post('/c/api/depart', {slot, nom}); document.getElementById('msg').textContent=j.message||''; }catch(e){ document.getElementById('msg').textContent='PC injoignable pour le chrono (pas grave, continue).'; } }
+async function envoyerForme(){   // 24 sept. : la FORME part au PC dès qu'elle est complète (Michael : « es-tu capable de le voir ? »)
+  try{ const j=await post('/c/api/chemin', {slot, nom, depart:etat.depart, legs:etat.legs, phrase:phrase(), forme_seule:true, ts:Date.now()}); document.getElementById('msg').textContent=j.message||''; }catch(e){ document.getElementById('msg').textContent='PC injoignable : la forme partira avec les mesures.'; } }
 async function envoyer(){ try{ const j=await post('/c/api/chemin', {slot, nom, depart:etat.depart, legs:etat.legs, mesures:etat.mes, phrase:phrase(), ts:Date.now()});
     document.getElementById('msg').textContent=j.message||'envoyé'; document.getElementById('q').textContent=j.message||'Envoyé.'; document.getElementById('btns').innerHTML=''; }catch(e){ document.getElementById('msg').textContent='PC injoignable : dis le chemin à Claude au casque : '+phrase(); } }
 addEventListener('resize', resize); resize(); rendre();
