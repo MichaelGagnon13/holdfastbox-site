@@ -93,7 +93,7 @@ function dessiner(){
   // triade au départ
   const T=[[rot([0.55,0,0]),'droite'],[rot([0,-0.55,0]),'tout droit'],[rot([0,0,0.55]),'haut']];
   const all=R.concat(G.flat()); let minx=Math.min(...all.map(p=>p[0])), maxx=Math.max(...all.map(p=>p[0])), miny=Math.min(...all.map(p=>p[1])), maxy=Math.max(...all.map(p=>p[1]));
-  const sc=Math.min((W-70)/Math.max(maxx-minx,0.5),(H-70)/Math.max(maxy-miny,0.5))*zoom; const ox=W/2-(minx+maxx)/2*sc+panX, oy=H/2-(miny+maxy)/2*sc+panY;
+  const base=Math.min(W,H)/4.2; const sc=Math.min(base, (W-70)/Math.max(maxx-minx,0.5),(H-70)/Math.max(maxy-miny,0.5))*zoom; const ox=W/2-(minx+maxx)/2*sc+panX, oy=H/2-(miny+maxy)/2*sc+panY;
   const S=p=>[p[0]*sc+ox, p[1]*sc+oy]; const P=R.map(S);
   ctx.strokeStyle='rgba(255,255,255,.10)'; ctx.lineWidth=1; for(const [a,b] of G){ const A=S(a),B=S(b); ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.lineTo(B[0],B[1]); ctx.stroke(); }
   const p0=P[0]; for(const [v,lab] of T){ const V=S(v); ctx.strokeStyle='rgba(159,208,255,.55)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(p0[0],p0[1]); ctx.lineTo(V[0],V[1]); ctx.stroke(); ctx.fillStyle='rgba(159,208,255,.8)'; ctx.font='11px sans-serif'; ctx.textAlign='center'; ctx.fillText(lab, V[0], V[1]-4); }
@@ -187,7 +187,7 @@ function rendre(){
   else if(etape==='relire'){ rendreRelecture(q, B); }
   requestAnimationFrame(resize);   // le panneau change de hauteur → le canevas se redimensionne
 }
-document.getElementById('annuler').onclick=()=>{ const h=hist.pop(); if(!h) return; const o=JSON.parse(h); etat=o.etat; etape=o.etape; attente=o.attente; rendre(); };
+document.getElementById('annuler').onclick=()=>{ const h=hist.pop(); if(!h) return; const o=JSON.parse(h); etat=o.etat; etape=o.etape; attente=o.attente; if(!etat.depart){ zoom=1; panX=0; panY=0; } rendre(); };
 
 // ---------- mesures : pointillés de cote sur le 3D (Michael 24 sept. : « pas à la volée avec du texte ») ----------
 function vecU(sens){ const v=[0,0,0]; for(const s of sens){ v[0]+=V3[s][0]; v[1]+=V3[s][1]; v[2]+=V3[s][2]; } const n=Math.hypot(...v)||1; return v.map(x=>x/n); }
