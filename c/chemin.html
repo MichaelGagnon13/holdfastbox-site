@@ -36,6 +36,9 @@
 <div id="app">
  <div id="haut"><a class="btn gris" id="retour" href="/c/dernier.html" style="text-decoration:none;font-size:12px;padding:8px 10px">← sections</a><h1 id="titre">Section</h1><button class="btn gris" id="annuler">↶ Effacer</button></div>
  <canvas id="cv"></canvas><input type="file" id="photo" accept="image/*" capture="environment" style="display:none">
+<div id="cam" style="display:none;position:fixed;inset:0;background:#000;z-index:50"><video id="camv" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover"></video>
+ <div style="position:absolute;left:0;right:0;bottom:18px;display:flex;justify-content:center;gap:14px"><button class="btn gris" id="camx" style="width:90px">✕</button><button class="btn or" id="camok" style="width:140px;font-size:18px">📸 Photo</button><button class="btn gris" id="camt" style="width:90px">🔦</button></div>
+ <div id="cammsg" style="position:absolute;top:10px;left:10px;right:10px;color:#ffd34d;font-size:13px;text-shadow:0 1px 2px #000"></div></div>
  <div id="panneau"><p id="q"></p><p id="chemin"></p><div class="grille" id="btns"></div><div id="msg"></div></div>
 </div>
 <script>
@@ -182,7 +185,9 @@ function rendre(){
   else if(etape==='fin'){ q.textContent='La fin, c\'est quoi ?';
     for(const k in FINS) B.appendChild(btn(FINS[k], k==='te'?'vert':'or', ()=>{ legCourante().fin='fin:'+k; etat.fini=true; etape='termine'; envoyerForme(); })); }
   else if(etape==='termine'){ q.textContent='Chemin complet. Maintenant les cotes au galon, une par écran.';
-    B.appendChild(btn('📷 Photo du chantier', 'or large', ()=>{ document.getElementById('photo').click(); return false; }, 'ouvre l\'appareil, la photo part chez Claude avec le chemin'));
+    const nP=(etat.photos||[]).length; const noms=['départ','milieu','arrivée'];
+    for(let i=0;i<3;i++){ const faite=(etat.photos||[])[i]; B.appendChild(btn((faite?'✔ ':'📷 ')+'Photo '+(i+1)+' : '+noms[i], faite?'vert':'or', ()=>{ photoIdx=i; document.getElementById('photo').click(); return false; })); }
+    B.appendChild(btn('🔦 Photo avec lampe', 'gris large', ()=>{ ouvrirCam(); return false; }, 'caméra dans la page, lampe torche forcée si le téléphone le permet'));
     B.appendChild(btn('Mesures ➤', 'vert large', ()=>{ etat.sel=null; etape='mesures'; }, 'les cotes en pointillés sur le dessin')); }
   else if(etape==='mesures'){ rendreMesure(q, B); }
   else if(etape==='relire'){ rendreRelecture(q, B); }
@@ -321,14 +326,25 @@ cv.addEventListener('pointerup', e=>{ ptrs.delete(e.pointerId); if(pinch){ if(pt
   if(moved>6||etape!=='mesures') return; const r=cv.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top;
   const h=hits.find(h=>Math.abs(x-h.x)<=h.w&&Math.abs(y-h.y)<=16); if(h){ hist.push(JSON.stringify({etat,etape,attente})); etat.sel=h.qi; const v=valeurQ(questions()[h.qi]); cur={po:v?String(Math.floor(v/16)):'', f:v?v%16:0, c:null}; rendre(); } });
 
-// ---------- photo du chantier (Michael 25 sept.) : appareil direct, réduite, envoyée avec le chemin ----------
-document.getElementById('photo').addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; document.getElementById('msg').textContent='Photo : envoi…';
-  const bmp=await createImageBitmap(f); const k=Math.min(1, 1600/Math.max(bmp.width,bmp.height)); const c=document.createElement('canvas'); c.width=Math.round(bmp.width*k); c.height=Math.round(bmp.height*k);
-  c.getContext('2d').drawImage(bmp,0,0,c.width,c.height); const data=c.toDataURL('image/jpeg',0.82);
+// ---------- photos du chantier (Michael 25 sept.) : 3 photos (départ, milieu, arrivée), appareil direct ou caméra dans la page avec lampe ----------
+let photoIdx=0;
+async function envoyerPhoto(data){ document.getElementById('msg').textContent='Photo '+(photoIdx+1)+' : envoi…';
   try{ const ctl=new AbortController(); setTimeout(()=>ctl.abort(), 30000);
-    const r=await fetch(API+'/c/api/photo',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({slot, nom, image:data, phrase:phrase(), legs:etat.legs, cons:etat.cons, ts:Date.now()}),signal:ctl.signal}); const j=await r.json();
-    document.getElementById('msg').textContent=j.message||'Photo envoyée.'; }catch(err){ document.getElementById('msg').textContent='PC injoignable : photo non envoyée.'; }
-  e.target.value=''; });
+    const r=await fetch(API+'/c/api/photo',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({slot, nom, idx:photoIdx+1, image:data, phrase:phrase(), legs:etat.legs, cons:etat.cons, ts:Date.now()}),signal:ctl.signal}); const j=await r.json();
+    etat.photos=etat.photos||[]; etat.photos[photoIdx]=true; document.getElementById('msg').textContent=j.message||'Photo envoyée.'; rendre(); }catch(err){ document.getElementById('msg').textContent='PC injoignable : photo non envoyée.'; } }
+function reduire(src,w,h){ const k=Math.min(1, 1600/Math.max(w,h)); const c=document.createElement('canvas'); c.width=Math.round(w*k); c.height=Math.round(h*k); c.getContext('2d').drawImage(src,0,0,c.width,c.height); return c.toDataURL('image/jpeg',0.82); }
+document.getElementById('photo').addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; const bmp=await createImageBitmap(f); await envoyerPhoto(reduire(bmp,bmp.width,bmp.height)); e.target.value=''; });
+let camStream=null, camTrack=null;
+async function ouvrirCam(){ const box=document.getElementById('cam'), v=document.getElementById('camv'), m=document.getElementById('cammsg'); box.style.display='block'; m.textContent='';
+  try{ camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}, width:{ideal:1920}, height:{ideal:1440}}, audio:false}); v.srcObject=camStream; camTrack=camStream.getVideoTracks()[0];
+    await allumer(true); }catch(err){ m.textContent='Caméra refusée : '+err.message; } }
+async function allumer(on){ const m=document.getElementById('cammsg'); if(!camTrack) return; const caps=camTrack.getCapabilities?camTrack.getCapabilities():{};
+  if(!('torch' in caps)){ m.textContent='Ce téléphone ne laisse pas la page allumer la lampe. Photo quand même, ou allume la lampe à la main.'; return; }
+  try{ await camTrack.applyConstraints({advanced:[{torch:on}]}); m.textContent=on?'🔦 lampe allumée':'lampe éteinte'; }catch(err){ m.textContent='Lampe refusée : '+err.message; } }
+function fermerCam(){ if(camStream){ camStream.getTracks().forEach(t=>t.stop()); } camStream=null; camTrack=null; document.getElementById('cam').style.display='none'; }
+document.getElementById('camx').onclick=fermerCam;
+document.getElementById('camt').onclick=()=>{ const m=document.getElementById('cammsg'); allumer(!(m.textContent.includes('allumée'))); };
+document.getElementById('camok').onclick=async ()=>{ const v=document.getElementById('camv'); const data=reduire(v, v.videoWidth, v.videoHeight); const idx=(etat.photos||[]).findIndex(x=>!x); photoIdx=idx<0?Math.min((etat.photos||[]).length,2):idx; fermerCam(); await envoyerPhoto(data); };
 // ---------- réseau ----------
 const API = (location.hostname.endsWith('ts.net')||location.hostname==='127.0.0.1') ? '' : 'https://michael-system-product-name.tail362e86.ts.net';
 async function post(url, body){ const ctl=new AbortController(); setTimeout(()=>ctl.abort(), 8000);
