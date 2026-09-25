@@ -123,7 +123,7 @@ function phrase(){
   for(const l of etat.legs){
     if(l.sens.length===2) p.push(MOT45[l.sens[0]]+' '+MOT45[l.sens[1]]); else p.push(MOT[l.sens[0]]);
     for(const m of l.marqueurs) p.push(MARQ[m].toLowerCase());
-    if(l.fin==='90') p.push('90'); else if(l.fin==='45') p.push('45'); else if(l.fin==='te90') p.push('té, ça tourne'); else if(l.fin&&l.fin.startsWith('fin:')) p.push('fin : '+FINS[l.fin.slice(4)].toLowerCase());
+    if(l.fin==='90') p.push('90'); else if(l.fin==='45') p.push('45'); else if(l.fin==='te90') p.push('té, ça tourne'); else if(l.fin&&l.fin.startsWith('fin:')) p.push('fin : '+FINS[l.fin.slice(4)].toLowerCase()+(etat.ferme===true?', fermé':(etat.ferme===false?', ouvert':'')));
   }
   return p.join(', ');
 }
@@ -265,7 +265,10 @@ function rendre(){
     rendrePad(q, B, nomM, P.fixe?'centre à centre':'optionnel : sinon je la place', (v)=>{ if(P.fixe){ etat.cons.longs[P.leg]=v; delete etat.cons.min[P.leg]; } else { (etat.cons.pos[P.leg]=etat.cons.pos[P.leg]||{})[P.k]=v; } etat.posM=null; etape='bout'; },
       ()=>{ etat.posM=null; etape='bout'; }, P.fixe?'Annuler':'Je place'); }
   else if(etape==='fin'){ q.textContent='La fin, c\'est quoi ?';
-    for(const k in FINS) B.appendChild(btn(FINS[k], k==='te'?'vert':'or', ()=>{ legCourante().fin='fin:'+k; etat.fini=true; etape='termine'; envoyerForme(); })); }
+    for(const k in FINS) B.appendChild(btn(FINS[k], k==='te'?'vert':'or', ()=>{ legCourante().fin='fin:'+k; etape='ouvert'; })); }
+  else if(etape==='ouvert'){ q.textContent='Le bout est-il ouvert ou fermé ?';   // contremaître 25 sept. : ouvert (trou pas percé, rien au bout, on tourne le montage) = pas d'union ; fermé (les deux bouts pris) = union obligatoire
+    B.appendChild(btn('Ouvert', 'vert', ()=>{ etat.ferme=false; etat.fini=true; etape='termine'; envoyerForme(); }, 'trou pas percé, rien au bout : pas d\'union'));
+    B.appendChild(btn('Fermé', 'or', ()=>{ etat.ferme=true; etat.fini=true; etape='termine'; envoyerForme(); }, 'raccord existant au bout : union obligatoire')); }
   else if(etape==='termine'){ q.textContent='Chemin complet. Maintenant les cotes au galon, une par écran.';
     const nP=(etat.photos||[]).length; const noms=['départ','milieu','arrivée'];
     for(let i=0;i<3;i++){ const faite=(etat.photos||[])[i]; B.appendChild(btn((faite?'✔ ':'📷 ')+'Photo '+(i+1)+' : '+noms[i], faite?'vert':'or', ()=>{ photoIdx=i; document.getElementById('photo').click(); return false; })); }
@@ -439,9 +442,9 @@ async function post(url, body){ const ctl=new AbortController(); setTimeout(()=>
 async function envoyerDepart(){ if(departEnvoye) return; departEnvoye=true;   // le chrono part au PREMIER geste de la section
   try{ const j=await post('/c/api/depart', {slot, nom}); document.getElementById('msg').textContent=j.message||''; }catch(e){ document.getElementById('msg').textContent='PC injoignable pour le chrono (pas grave, continue).'; } }
 async function envoyerForme(){   // 24 sept. : la FORME part au PC dès qu'elle est complète (Michael : « es-tu capable de le voir ? »)
-  try{ const j=await post('/c/api/chemin', {slot, nom, depart:etat.depart, legs:etat.legs, cons:etat.cons, phrase:phrase(), forme_seule:true, ts:Date.now()}); document.getElementById('msg').textContent=j.message||''; }catch(e){ document.getElementById('msg').textContent='PC injoignable : la forme partira avec les mesures.'; } }
+  try{ const j=await post('/c/api/chemin', {slot, nom, depart:etat.depart, legs:etat.legs, cons:etat.cons, ferme:etat.ferme, phrase:phrase(), forme_seule:true, ts:Date.now()}); document.getElementById('msg').textContent=j.message||''; }catch(e){ document.getElementById('msg').textContent='PC injoignable : la forme partira avec les mesures.'; } }
 async function envoyer(){ const Ax=axesDetour(); etat.mes=etat.mes||{}; if(Ax.x&&etat.mes.axe0x==null) etat.mes.axe0x=true;   // retour dans l'axe par défaut
-  try{ const j=await post('/c/api/chemin', {slot, nom, depart:etat.depart, legs:etat.legs, mesures:etat.mes, cons:etat.cons, phrase:phrase(), ts:Date.now()});
+  try{ const j=await post('/c/api/chemin', {slot, nom, depart:etat.depart, legs:etat.legs, mesures:etat.mes, cons:etat.cons, ferme:etat.ferme, phrase:phrase(), ts:Date.now()});
     document.getElementById('msg').textContent=j.message||'envoyé'; document.getElementById('q').textContent=j.message||'Envoyé.'; document.getElementById('btns').innerHTML=''; }catch(e){ document.getElementById('msg').textContent='PC injoignable : dis le chemin à Claude au casque : '+phrase(); } }
 const CLE='chemin_'+slot;
 function sauver(){ try{ localStorage.setItem(CLE, JSON.stringify({etat, etape, attente, yaw, pitch, zoom, panX, panY, vue:(window.T3?T3.getVue():null), t:Date.now()})); }catch(e){} }
