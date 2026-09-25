@@ -8,7 +8,8 @@
  #app{display:flex;flex-direction:column;height:100%}
  #haut{display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(180deg,#2b3648,#1a2230);border-bottom:1px solid #3a4658}
  #haut h1{font-size:16px;margin:0;flex:1}
- canvas{display:block;width:100%;flex:1;min-height:0;touch-action:none}
+ #vue{position:relative;flex:1;min-height:0} #gl{position:absolute;inset:0;touch-action:none} #gl canvas{display:block;width:100%!important;height:100%!important}
+ canvas#cv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;touch-action:none}
  #panneau{background:#151b26;border-top:1px solid #3a4658;padding:10px 10px 14px;box-shadow:0 -6px 12px rgba(0,0,0,.35)}
  #q{font-size:15px;font-weight:700;color:#ffd34d;margin:0 0 6px}
  #chemin{font-size:13px;color:#9fd0ff;margin:0 0 8px;line-height:1.35;max-height:52px;overflow:auto}
@@ -35,12 +36,63 @@
 </style></head><body>
 <div id="app">
  <div id="haut"><a class="btn gris" id="retour" href="/c/dernier.html" style="text-decoration:none;font-size:12px;padding:8px 10px">← sections</a><h1 id="titre">Section</h1><button class="btn gris" id="annuler">↶ Effacer</button></div>
- <canvas id="cv"></canvas><input type="file" id="photo" accept="image/*" capture="environment" style="display:none">
+ <div id="vue"><div id="gl"></div><canvas id="cv"></canvas></div><input type="file" id="photo" accept="image/*" capture="environment" style="display:none">
 <div id="cam" style="display:none;position:fixed;inset:0;background:#000;z-index:50"><video id="camv" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover"></video>
  <div style="position:absolute;left:0;right:0;bottom:18px;display:flex;justify-content:center;gap:14px"><button class="btn gris" id="camx" style="width:90px">✕</button><button class="btn or" id="camok" style="width:140px;font-size:18px">📸 Photo</button><button class="btn gris" id="camt" style="width:90px">🔦</button></div>
  <div id="cammsg" style="position:absolute;top:10px;left:10px;right:10px;color:#ffd34d;font-size:13px;text-shadow:0 1px 2px #000"></div></div>
  <div id="panneau"><p id="q"></p><p id="chemin"></p><div class="grille" id="btns"></div><div id="msg"></div></div>
 </div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+// ---------- moteur 3D du constructeur : le même look que les pages finies (Michael 25 sept. : « du 2D dans le 3D, pas vraiment 3D ») ----------
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+const holder=document.getElementById('gl');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x1c2230);
+const cam=new THREE.PerspectiveCamera(45, 1, 0.1, 5000);
+const ren=new THREE.WebGLRenderer({antialias:true}); ren.setPixelRatio(Math.min(devicePixelRatio,2)); holder.appendChild(ren.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x334, 1.2)); const sun=new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(30,60,40); scene.add(sun);
+const ctl=new OrbitControls(cam, ren.domElement); ctl.enableDamping=true; ctl.dampingFactor=0.12;
+const K=20, R=0.66;                       // 1 unité de tronçon = 20 ; rayon du 1 1/4 comme sur les pages finies
+const W=(p)=>new THREE.Vector3(p[0]*K, p[2]*K, p[1]*K);   // nos axes (x droite, y arrière, z haut) → three (x, y haut, z vers soi)
+let grp=new THREE.Group(); scene.add(grp); let grid=null; let userMoved=false, fitted=false;
+ctl.addEventListener('start', ()=>{ userMoved=true; });
+function cyl(A,B,r,color){ const L=A.distanceTo(B); if(L<1e-6) return; const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,L,24), new THREE.MeshStandardMaterial({color, roughness:.6}));
+  m.position.copy(A).add(B).multiplyScalar(.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), B.clone().sub(A).normalize()); grp.add(m); }
+function sph(P,r,color){ const m=new THREE.Mesh(new THREE.SphereGeometry(r,20,20), new THREE.MeshStandardMaterial({color, roughness:.5})); m.position.copy(P); grp.add(m); }
+function rebuild(P3, legs, fini){
+  scene.remove(grp); grp=new THREE.Group(); scene.add(grp); if(grid){ scene.remove(grid); grid=null; }
+  if(!P3||P3.length<1) return;
+  const box=new THREE.Box3();
+  P3.forEach(p=>box.expandByPoint(W(p)));
+  legs.forEach((l,i)=>{ const A=W(P3[i]), B=W(P3[i+1]); const dir=B.clone().sub(A).normalize(); const L=A.distanceTo(B);
+    cyl(A,B,R,0xdfe6f0);
+    l.marqueurs.forEach((m,k)=>{ const tt=(k+1)/(l.marqueurs.length+1); const C=A.clone().lerp(B,tt); const h=dir.clone().multiplyScalar(m==='valve'?1.6:1.1);
+      if(m==='valve') cyl(C.clone().sub(h), C.clone().add(h), R*1.7, 0xf0c030);
+      else if(m==='union') cyl(C.clone().sub(h), C.clone().add(h), R*1.5, 0x4a90e2);
+      else { sph(C, R*1.5, 0x1a9a3a); cyl(C, C.clone().add(new THREE.Vector3(0,-4,0)), R, 0x1a9a3a); } });
+    if(l.fin==='90'||l.fin==='45') sph(B, R*1.45, 0x0b4f9c);
+    else if(l.fin==='te90'){ sph(B, R*1.5, 0x1a9a3a); cyl(B, B.clone().add(dir.clone().multiplyScalar(4)), R, 0x1a9a3a); }
+    else if(l.fin==='fin:te'){ sph(B, R*1.5, 0x1a9a3a); cyl(B, B.clone().add(new THREE.Vector3(0,-4,0)), R, 0x1a9a3a); }
+    else if(l.fin==='fin:coude') sph(B, R*1.45, 0x0b4f9c);
+    else if(l.fin==='fin:bague') cyl(B.clone().sub(dir.clone().multiplyScalar(1.2)), B.clone().add(dir.clone().multiplyScalar(1.2)), R*1.4, 0xffd34d);
+    else if(l.fin==='fin:bout') cyl(B, B.clone().add(dir.clone().multiplyScalar(6)), R, 0x8f98a8);   // le tuyau existant continue
+  });
+  sph(W(P3[0]), R*1.3, 0xffd34d);                                                        // départ
+  // petites triades à chaque raccord (D / TD / H)
+  const tri=new THREE.Group(); P3.forEach((p,i)=>{ const O=W(p); for(const [d,c] of [[[0.3,0,0],0x7fb3ff],[[0,-0.3,0],0x7ee38a],[[0,0,0.3],0xff8a80]]){ const g=new THREE.BufferGeometry().setFromPoints([O, W([p[0]+d[0],p[1]+d[1],p[2]+d[2]])]); tri.add(new THREE.Line(g, new THREE.LineBasicMaterial({color:c, transparent:true, opacity:i?0.45:0.9}))); } }); grp.add(tri);
+  // sol
+  const mn=box.min, mx=box.max; const s=Math.max(mx.x-mn.x, mx.z-mn.z, 40)+40; grid=new THREE.GridHelper(s, Math.round(s/10), 0x3a4658, 0x2a3140); grid.position.set((mn.x+mx.x)/2, mn.y-6, (mn.z+mx.z)/2); scene.add(grid);
+  if(!userMoved||!fitted){ const c=box.getCenter(new THREE.Vector3()), sz=Math.max(box.getSize(new THREE.Vector3()).length(), 30); cam.position.set(c.x+sz*1.1, c.y+sz*0.75, c.z+sz*1.15); ctl.target.copy(c); fitted=true; }
+}
+function resetVue(){ userMoved=false; fitted=false; }
+function project(p){ const v=W(p).project(cam); const r=holder.getBoundingClientRect(); return [(v.x+1)/2*r.width, (1-v.y)/2*r.height]; }
+function resize(){ const r=holder.getBoundingClientRect(); if(r.width<2||r.height<2) return; cam.aspect=r.width/r.height; cam.updateProjectionMatrix(); ren.setSize(r.width, r.height, false); }
+new ResizeObserver(resize).observe(holder); resize();
+window.T3={rebuild, project, resetVue, cam, ctl, ren, getVue:()=>({p:cam.position.toArray(), t:ctl.target.toArray()}), setVue:(v)=>{ if(v&&v.p){ cam.position.fromArray(v.p); ctl.target.fromArray(v.t); userMoved=true; fitted=true; } }};
+(function loop(){ ctl.update(); ren.render(scene, cam); if(window.dessinerOverlay) window.dessinerOverlay(); requestAnimationFrame(loop); })();
+window.dispatchEvent(new Event('t3ready'));
+</script>
 <script>
 // ---------- repère : face au tap, le main dans le dos ----------
 const V3 = {r:[1,0,0], l:[-1,0,0], f:[0,1,0], b:[0,-1,0], u:[0,0,1], d:[0,0,-1]};
@@ -84,7 +136,7 @@ let yaw=-0.62, pitch=0.42, drag=null, zoom=1, panX=0, panY=0; const ptrs=new Map
 function p3(){ const P=[[0,0,0]]; etat.legs.forEach((l,i)=>{ const u=vecU(l.sens); const q=P[P.length-1]; const Li=1+0.35*(i%4); P.push([q[0]+u[0]*Li, q[1]+u[1]*Li, q[2]+u[2]*Li]); }); return P; }
 function rot(p){ const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
   const x1=p[0]*cy-p[1]*sy, y1=p[0]*sy+p[1]*cy; const z2=y1*sp+p[2]*cp; return [x1, -z2]; }
-function dessiner(){
+function dessiner2D(){
   const W=cv.getBoundingClientRect().width, H=cv.getBoundingClientRect().height;
   ctx.clearRect(0,0,W,H);
   if(!etat.depart){ ctx.fillStyle='#8a93a3'; ctx.font='15px sans-serif'; ctx.textAlign='center'; ctx.fillText('Le chemin se dessine ici, en 3D : tourne-le au doigt', W/2, H/2); return; }
@@ -136,6 +188,34 @@ cv.addEventListener('pointermove', e=>{ if(ptrs.has(e.pointerId)) ptrs.set(e.poi
 cv.addEventListener('pointercancel', e=>{ ptrs.delete(e.pointerId); drag=null; pinch=null; });
 cv.addEventListener('wheel', e=>{ e.preventDefault(); const r=cv.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top; const f=Math.exp(-e.deltaY*0.0015); const z2=Math.max(0.4,Math.min(8,zoom*f)); const k=z2/zoom; panX=x-(x-panX)*k; panY=y-(y-panY)*k; zoom=z2; dessiner(); }, {passive:false});
 cv.addEventListener('dblclick', ()=>{ yaw=-0.62; pitch=0.42; zoom=1; panX=0; panY=0; dessiner(); });
+
+// ---------- 3D : reconstruction quand le chemin change ; étiquettes et cotes par-dessus, à chaque image ----------
+let sig3d=''; let vueEnAttente=null;
+function dessiner(){ if(!window.T3){ dessiner2D(); return; } const s=JSON.stringify(etat.legs)+'|'+etat.depart+'|'+etat.fini; if(s!==sig3d){ sig3d=s; T3.rebuild(etat.depart?p3():[], etat.legs, etat.fini); } }
+window.dessinerOverlay=function(){ if(!window.T3) return; const W=cv.getBoundingClientRect().width, H=cv.getBoundingClientRect().height; ctx.clearRect(0,0,W,H);
+  if(!etat.depart){ ctx.fillStyle='#8a93a3'; ctx.font='15px sans-serif'; ctx.textAlign='center'; ctx.fillText('Le chemin se dessine ici, en 3D : tourne, zoome, déplace au doigt', W/2, H/2); return; }
+  const P3=p3(); const S=p=>T3.project(p); const P=P3.map(S);
+  // triades : lettres seulement (les traits sont dans la scène)
+  for(let i=0;i<P3.length;i++){ const c=P3[i]; for(const [d,lab,col] of [[[0.36,0,0],i?'D':'droite','#7fb3ff'],[[0,-0.36,0],i?'TD':'tout droit','#7ee38a'],[[0,0,0.36],i?'H':'haut','#ff8a80']]){ const V=S([c[0]+d[0],c[1]+d[1],c[2]+d[2]]); ctx.fillStyle=col; ctx.globalAlpha=i?0.7:1; ctx.font=(i?'9px':'11px')+' sans-serif'; ctx.textAlign='center'; ctx.fillText(lab, V[0], V[1]-2); ctx.globalAlpha=1; } }
+  etat.legs.forEach((l,i)=>{ const a=P[i], b=P[i+1];
+    const Qs=(etape==='mesures'&&etat.sel!=null)?questions()[etat.sel]:null; if(Qs&&Qs.leg===i){ ctx.strokeStyle='rgba(255,211,77,.45)'; ctx.lineWidth=14; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke(); }
+    l.marqueurs.forEach((m,k)=>{ const tt=(k+1)/(l.marqueurs.length+1); const x=a[0]+(b[0]-a[0])*tt, y=a[1]+(b[1]-a[1])*tt; ctx.fillStyle='#fff'; ctx.font='bold 11px sans-serif'; ctx.textAlign='center'; ctx.fillText(m==='valve'?'V':(m==='union'?'U':'T'), x, y+4); });
+    if(l.fin&&l.fin.startsWith('fin:')){ const tt=l.fin.slice(4); ctx.fillStyle='#ffd34d'; ctx.font='bold 13px sans-serif'; ctx.textAlign='left'; ctx.fillText('FIN '+FINS[tt].split(' ')[0].toUpperCase(), b[0]+14, b[1]-14); }
+    else if(l.fin==='te90'||l.fin==='90'||l.fin==='45'){ ctx.fillStyle='#fff'; ctx.font='bold 10px sans-serif'; ctx.textAlign='center'; ctx.fillText(l.fin==='te90'?'T':l.fin, b[0], b[1]+4); }
+    const mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2, vx=b[0]-a[0], vy=b[1]-a[1], vn=Math.hypot(vx,vy)||1; const nx=mx-vy/vn*17, ny=my+vx/vn*17;
+    ctx.fillStyle='#ffd34d'; ctx.beginPath(); ctx.arc(nx,ny,11,0,7); ctx.fill(); ctx.fillStyle='#2a1b00'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center'; ctx.fillText(String(i+1), nx, ny+5); });
+  const p0=P[0]; ctx.fillStyle='#ffd34d'; ctx.font='bold 13px sans-serif'; ctx.textAlign='left'; ctx.fillText(DEPARTS[etat.depart].toUpperCase(), p0[0]+14, p0[1]+5);
+  if(!etat.fini){ const q=P[P.length-1]; ctx.strokeStyle='#ffd34d'; ctx.lineWidth=2; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.arc(q[0],q[1],16,0,7); ctx.stroke(); ctx.setLineDash([]); }
+  dessinerCotes(P3, S, true);
+  ctx.fillStyle='rgba(138,147,163,.7)'; ctx.font='11px sans-serif'; ctx.textAlign='right'; ctx.fillText('un doigt : tourne · deux doigts : zoom et déplace · double-tape : vue de départ', W-8, H-8);
+};
+const glEl=document.getElementById('gl'); let tap3=null;
+glEl.addEventListener('pointerdown', e=>{ tap3={x:e.clientX,y:e.clientY}; });
+glEl.addEventListener('pointerup', e=>{ if(!tap3) return; const moved=Math.hypot(e.clientX-tap3.x,e.clientY-tap3.y); tap3=null; if(moved>6||etape!=='mesures') return;
+  const r=glEl.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top; const h=hits.find(h=>Math.abs(x-h.x)<=h.w&&Math.abs(y-h.y)<=16);
+  if(h){ hist.push(JSON.stringify({etat,etape,attente})); etat.sel=h.qi; const v=valeurQ(questions()[h.qi]); cur={po:v?String(Math.floor(v/16)):'', f:v?v%16:0, c:null}; rendre(); } });
+glEl.addEventListener('dblclick', ()=>{ if(window.T3){ T3.resetVue(); sig3d=''; dessiner(); } });
+addEventListener('t3ready', ()=>{ sig3d=''; if(vueEnAttente){ T3.setVue(vueEnAttente); vueEnAttente=null; } resize(); dessiner(); });
 
 // ---------- panneau de questions ----------
 function btn(txt, cls, fn, sous){ const b=document.createElement('button'); b.className='btn '+(cls||''); b.innerHTML=txt+(sous?'<span class="petit">'+sous+'</span>':''); b.onclick=()=>{ const snap=JSON.stringify({etat,etape,attente}); if(fn()===false) return; hist.push(snap); rendre(); }; return b; }
@@ -295,8 +375,8 @@ function rendrePad(q, B, titre, sous, onOK, onSkip, skipLabel){
   B.appendChild(btn(skipLabel||'Annuler', 'gris large', ()=>{ onSkip(); cur={po:'',f:0,c:null}; }));
 }
 // dessin des cotes : appelé par dessiner() avec les points 3D et la projection écran
-function dessinerCotes(P3, S0){
-  hits=[]; if(etape!=='mesures') return; const Q=questions(); const N=P3.length-1; const S=p=>S0(rot(p));   // points 3D → tournés → écran
+function dessinerCotes(P3, S0, direct){
+  hits=[]; if(etape!=='mesures') return; const Q=questions(); const N=P3.length-1; const S=direct?S0:(p=>S0(rot(p)));   // points 3D → écran (three.js) ou tournés (repli 2D)
   const perp=(a,b,off)=>{ const vx=b[0]-a[0], vy=b[1]-a[1], n=Math.hypot(vx,vy)||1; return [[a[0]-vy/n*off,a[1]+vx/n*off],[b[0]-vy/n*off,b[1]+vx/n*off]]; };
   const zmax=Math.max(...P3.map(p=>p[2]))+0.45;
   Q.forEach((Qc,qi)=>{
@@ -357,8 +437,8 @@ async function envoyer(){ const Ax=axesDetour(); etat.mes=etat.mes||{}; if(Ax.x&
   try{ const j=await post('/c/api/chemin', {slot, nom, depart:etat.depart, legs:etat.legs, mesures:etat.mes, cons:etat.cons, phrase:phrase(), ts:Date.now()});
     document.getElementById('msg').textContent=j.message||'envoyé'; document.getElementById('q').textContent=j.message||'Envoyé.'; document.getElementById('btns').innerHTML=''; }catch(e){ document.getElementById('msg').textContent='PC injoignable : dis le chemin à Claude au casque : '+phrase(); } }
 const CLE='chemin_'+slot;
-function sauver(){ try{ localStorage.setItem(CLE, JSON.stringify({etat, etape, attente, yaw, pitch, zoom, panX, panY, t:Date.now()})); }catch(e){} }
-function restaurer(){ try{ const s=JSON.parse(localStorage.getItem(CLE)||'null'); if(!s||!s.etat||!s.etat.depart) return false; etat=s.etat; etape=s.etape==='posM'?'bout':s.etape; attente=s.attente||null; yaw=s.yaw??yaw; pitch=s.pitch??pitch; zoom=s.zoom||1; panX=s.panX||0; panY=s.panY||0; etat.sel=null; etat.posM=null; departEnvoye=true; return true; }catch(e){ return false; } }
+function sauver(){ try{ localStorage.setItem(CLE, JSON.stringify({etat, etape, attente, yaw, pitch, zoom, panX, panY, vue:(window.T3?T3.getVue():null), t:Date.now()})); }catch(e){} }
+function restaurer(){ try{ const s=JSON.parse(localStorage.getItem(CLE)||'null'); if(!s||!s.etat||!s.etat.depart) return false; etat=s.etat; etape=s.etape==='posM'?'bout':s.etape; attente=s.attente||null; yaw=s.yaw??yaw; pitch=s.pitch??pitch; zoom=s.zoom||1; panX=s.panX||0; panY=s.panY||0; etat.sel=null; etat.posM=null; departEnvoye=true; if(s.vue){ if(window.T3) T3.setVue(s.vue); else vueEnAttente=s.vue; } return true; }catch(e){ return false; } }
 const _rendre=rendre; rendre=function(){ _rendre(); sauver(); };
 addEventListener('resize', resize); if(restaurer()){ document.getElementById('msg').textContent='Chemin retrouvé (gardé dans le téléphone). Effacer jusqu\'au vide pour recommencer.'; } resize(); rendre();
 </script></body></html>
