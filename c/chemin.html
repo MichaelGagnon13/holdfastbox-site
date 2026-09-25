@@ -190,7 +190,9 @@ cv.addEventListener('wheel', e=>{ e.preventDefault(); const r=cv.getBoundingClie
 cv.addEventListener('dblclick', ()=>{ yaw=-0.62; pitch=0.42; zoom=1; panX=0; panY=0; dessiner(); });
 
 // ---------- 3D : reconstruction quand le chemin change ; étiquettes et cotes par-dessus, à chaque image ----------
-let sig3d=''; let vueEnAttente=null;
+let sig3d=''; let vueEnAttente=null; let plan=null, planTimer=null;
+async function sonderPlan(){ try{ const r=await fetch(API+'/c/api/plan?slot='+slot+'&t='+Date.now()); const j=await r.json(); const avant=!!(plan&&plan.ready); plan=j&&j.ready?j:null; if(!!plan!==avant && etape==='termine') rendre(); }catch(e){} }
+function demarrerSondage(){ if(planTimer) return; sonderPlan(); planTimer=setInterval(sonderPlan, 5000); }
 function dessiner(){ if(!window.T3){ dessiner2D(); return; } const s=JSON.stringify(etat.legs)+'|'+etat.depart+'|'+etat.fini; if(s!==sig3d){ sig3d=s; T3.rebuild(etat.depart?p3():[], etat.legs, etat.fini); } }
 window.dessinerOverlay=function(){ if(!window.T3) return; const W=cv.getBoundingClientRect().width, H=cv.getBoundingClientRect().height; ctx.clearRect(0,0,W,H);
   if(!etat.depart){ ctx.fillStyle='#8a93a3'; ctx.font='15px sans-serif'; ctx.textAlign='center'; ctx.fillText('Le chemin se dessine ici, en 3D : tourne, zoome, déplace au doigt', W/2, H/2); return; }
@@ -268,7 +270,10 @@ function rendre(){
     const nP=(etat.photos||[]).length; const noms=['départ','milieu','arrivée'];
     for(let i=0;i<3;i++){ const faite=(etat.photos||[])[i]; B.appendChild(btn((faite?'✔ ':'📷 ')+'Photo '+(i+1)+' : '+noms[i], faite?'vert':'or', ()=>{ photoIdx=i; document.getElementById('photo').click(); return false; })); }
     B.appendChild(btn('🔦 Photo avec lampe', 'gris large', ()=>{ ouvrirCam(); return false; }, 'caméra dans la page, lampe torche forcée si le téléphone le permet'));
-    B.appendChild(btn('Mesures ➤', 'vert large', ()=>{ etat.sel=null; etape='mesures'; }, 'les cotes en pointillés sur le dessin')); }
+    demarrerSondage();
+    if(plan){ B.appendChild(btn('Mesures prêtes ➤', 'or large', ()=>{ etat.sel=null; etape='mesures'; }, plan.texte||'Claude a regardé les photos')); }
+    else { const b=btn('Claude prépare les mesures…', 'gris large', ()=>false, 'envoie les photos, puis attends le jaune'); b.style.opacity='.7'; B.appendChild(b);
+      B.appendChild(btn('Mesurer sans attendre', 'gris demi', ()=>{ etat.sel=null; etape='mesures'; }, 'cotes standard')); } }
   else if(etape==='mesures'){ rendreMesure(q, B); }
   else if(etape==='relire'){ rendreRelecture(q, B); }
   requestAnimationFrame(resize);   // le panneau change de hauteur → le canevas se redimensionne
@@ -304,6 +309,8 @@ function questions(){
   Q.push({id:'diag', titre:'Contrôle : diagonale directe tap → arrivée', sous:'optionnel, attrape une erreur avant de couper', opt:true});
   const A=axesDetour(); if(A.x) Q.push({id:'axe0x', titre:'Droite-gauche : revient dans l\'axe du départ ?', sous:'écart 0 · touche pour donner l\'écart réel', opt:true, axe:0}); if(A.y) Q.push({id:'axe0y', titre:'Devant-derrière : revient dans l\'axe du départ ?', sous:'écart 0 · touche pour donner l\'écart réel', opt:true, axe:1});
   etat.legs.forEach((l,i)=>{ l.marqueurs.forEach((m,k)=>{ if(((etat.cons.pos[i]||{})[k])!=null) return; const nomM={te:'Té',valve:'Valve',union:'Union'}[m]; Q.push({id:'M'+i+'_'+k, m, leg:i, k, titre:nomM+' : du raccord d\'avant au CENTRE', sous:'optionnel : sinon je la place', opt:true}); }); });
+  if(plan&&plan.ready){ for(const Qc of Q){ if(plan.notes&&plan.notes[Qc.id]){ Qc.sous='📷 '+plan.notes[Qc.id]; Qc.note=true; } if((plan.skip||[]).includes(Qc.id)){ Qc.opt=true; Qc.sous='Claude s\'en occupe'; Qc.saut=true; } }
+    if(plan.ordre&&plan.ordre.length){ Q.sort((a,b)=>{ const ia=plan.ordre.indexOf(a.id), ib=plan.ordre.indexOf(b.id); return (ia<0?99:ia)-(ib<0?99:ib); }); } }
   return Q;
 }
 let cur={po:'', f:0, c:null}; let hits=[];
@@ -337,7 +344,7 @@ function rendreMesure(q, B){
     let manq=complet()?[]:Q.filter(x=>!x.opt&&valeurQ(x)==null&&!(x.id.startsWith('L')&&deduit(x.leg))&&!(x.id.startsWith('N')&&etat.legs.some(estV)&&false)).map(x=>x.id.startsWith('L')?'T'+(x.leg+1):(x.id.startsWith('N')?'⌂'+(x.leg+1):(x.id==='plafA'?'⌂A':'⌂B')));
     const Ax=axesDetour(); for(const [ax,plus,moins] of [['x','r','l'],['y','b','f']]){ const lie=(ax==='x')?(!!m0.dx||(Ax.x&&m0.axe0x!==false)):(!!m0.dy||(Ax.y&&m0.axe0y===true)); if(!lie) continue;   // un écart (ou « revient dans l'axe ») lie les tronçons de cet axe : un seul suffit
       const grp=etat.legs.map((l,k)=>k).filter(k=>(l=>l.sens.includes(plus)||l.sens.includes(moins))(etat.legs[k])&&!connuL(k)).map(k=>'T'+(k+1)); if(grp.length>1){ manq=manq.filter(x=>!grp.includes(x)); manq.push(grp.join(' ou ')); } }
-    q.innerHTML=(complet()?'Toutes les cotes sont là : Envoyer.':(nbM+' mesure'+(nbM>1?'s':'')+' à prendre. Touche un pointillé ou un bouton.'))+'<span class="petit">'+(manq.length?'<b style="color:#ff8a80">À mesurer : '+manq.join(', ')+'</b> · ':'')+'⌂ = hauteur sous le plafond · T = longueur centre à centre · gris = je calcule</span>';
+    q.innerHTML=(complet()?'Toutes les cotes sont là : Envoyer.':(nbM+' mesure'+(nbM>1?'s':'')+' à prendre. Touche un pointillé ou un bouton.'))+(plan&&plan.texte?'<span class="petit">📷 '+plan.texte+'</span>':'')+'<span class="petit">'+(manq.length?'<b style="color:#ff8a80">À mesurer : '+manq.join(', ')+'</b> · ':'')+'⌂ = hauteur sous le plafond · T = longueur centre à centre · gris = je calcule</span>';
     // liste des cotes en boutons (les pastilles se cachent l'une l'autre quand le chemin est long, Michael 24 sept. 16:55)
     Q.forEach((Qc,qi)=>{ const v=valeurQ(Qc); const lab=(Qc.id.startsWith('L')?'T'+(Qc.leg+1):(Qc.id.startsWith('N')?'⌂'+(Qc.leg+1):(Qc.id.startsWith('M')?({te:'T',valve:'V',union:'U'}[Qc.m]+(Qc.leg+1)):(Qc.id==='plafA'?'⌂A':(Qc.id==='plafB'?'⌂B':(Qc.id==='axe0x'?'↔ axe':(Qc.id==='axe0y'?'↕ axe':(Qc.id==='dy'?'⇢ tap→arr':'◇'))))))));
       if(Qc.id==='nivegal'){ const on=(etat.mes||{}).nivegal!==false; const b=btn('⌂ même hauteur '+(on?'✔':'✘'), on?'vert':'or', ()=>{ etat.mes=etat.mes||{}; etat.mes.nivegal=!on; }); b.classList.add('k'); B.appendChild(b); return; }
