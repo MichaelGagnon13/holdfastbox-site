@@ -10,28 +10,28 @@
  #haut h1{font-size:16px;margin:0;flex:1}
  #vue{position:relative;flex:1;min-height:0} #gl{position:absolute;inset:0;touch-action:none} #gl canvas{display:block;width:100%!important;height:100%!important}
  canvas#cv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;touch-action:none}
- #panneau{background:#151b26;border-top:1px solid #3a4658;padding:10px 10px 14px;box-shadow:0 -6px 12px rgba(0,0,0,.35)}
- #q{font-size:15px;font-weight:700;color:#ffd34d;margin:0 0 6px}
- #chemin{font-size:13px;color:#9fd0ff;margin:0 0 8px;line-height:1.35;max-height:52px;overflow:auto}
- .grille{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+ #panneau{background:#151b26;border-top:1px solid #3a4658;padding:6px 8px 8px;box-shadow:0 -6px 12px rgba(0,0,0,.35)}
+ #q{font-size:13px;font-weight:700;color:#ffd34d;margin:0 0 4px}
+ #chemin{font-size:11px;color:#9fd0ff;margin:0 0 5px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .grille{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
  #btns .btn.k.or,#btns .btn.k.vert,#btns .btn.k.gris{grid-column:span 1;padding:6px 2px;font-size:12px}
- .btn{border:0;border-radius:10px;padding:9px 5px;font-size:14px;font-weight:700;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.6);cursor:pointer;
+ .btn{border:0;border-radius:8px;padding:6px 3px;font-size:12px;line-height:1.15;font-weight:700;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.6);cursor:pointer;
    background:linear-gradient(180deg,#5b8ad8 0%,#2f61b8 48%,#244f9f 52%,#3a74d6 100%);box-shadow:0 2px 4px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.55)}
  .btn.vert{background:linear-gradient(180deg,#7ee38a 0%,#2eaa48 48%,#22903a 52%,#4cc665 100%)}
  .btn.or{background:linear-gradient(180deg,#ffd34d 0%,#f39c12 48%,#d9820a 52%,#ffb42e 100%);color:#2a1b00;text-shadow:none}
  .btn.gris{background:linear-gradient(180deg,#5a6272,#3a4150 48%,#30363f 52%,#454c58)}
  .btn.rouge{background:linear-gradient(180deg,#ff8a80 0%,#e53935 48%,#c62828 52%,#ff5252 100%)}
- .btn.large{grid-column:span 3}
- .petit{font-size:12px;font-weight:400;display:block;opacity:.85}
+ .btn.large{grid-column:span 4} .btn.demi{grid-column:span 2}
+ .petit{font-size:9px;font-weight:400;display:block;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
  #annuler{font-size:13px;padding:8px 10px}
  #msg{font-size:12px;color:#8a93a3;margin-top:6px;min-height:14px}
- .aff{grid-column:span 3;font-size:26px;font-weight:800;color:#7ee38a;text-align:center;padding:4px 0}
- .pad{grid-column:span 3;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
- .frac{grid-column:span 3;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
- .cote{grid-column:span 3;display:grid;grid-template-columns:1fr 1fr;gap:8px}
- .btn.k{padding:8px 4px;font-size:15px}
+ .aff{grid-column:span 4;font-size:22px;font-weight:800;color:#7ee38a;text-align:center;padding:2px 0}
+ .pad{grid-column:span 2;display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+ .frac{grid-column:span 2;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+ .cote{grid-column:span 4;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+ .btn.k{padding:7px 3px;font-size:14px}
  .btn.sel{background:linear-gradient(180deg,#ffd34d 0%,#f39c12 48%,#d9820a 52%,#ffb42e 100%);color:#2a1b00;text-shadow:none}
- #panneau{max-height:42vh;overflow:auto}
+ #panneau{max-height:34vh;overflow:auto}
  .grille{grid-auto-flow:row dense}
 </style></head><body>
 <div id="app">
@@ -240,7 +240,7 @@ function rendre(){
           const ns = prev.sens.length===1 ? [prev.sens[0], k] : [k];
           etat.legs.push({sens:ns, marqueurs:[], fin:null}); etape='bout'; }
         else { etat.legs.push({sens:[k], marqueurs:[], fin:null}); etape='bout'; } }); B.appendChild(b); }
-    if(!prev || prev.fin==='90' || prev.fin==='te90'){ B.appendChild(btn('En 45 ↗', 'gris large', ()=>{ etape='sens45'; attente=null; }, 'deux sens combinés')); }
+    if(!prev || prev.fin==='90' || prev.fin==='te90'){ B.appendChild(btn('En 45 ↗', 'gris demi', ()=>{ etape='sens45'; attente=null; }, 'deux sens combinés')); }
   }
   else if(etape==='sens45'){ q.textContent = attente ? 'Le 45 : '+MOT45[attente]+' … et ?' : 'Le 45 : premier sens ?';
     const ok = attente ? ['u','d','r','l','f','b'].filter(k=>k!==attente&&k!==OPP[attente]) : sensPermis();
@@ -257,8 +257,8 @@ function rendre(){
     B.appendChild(btn('Union', '', ()=>poseM('union'), 'en ligne, ça continue'));
     B.appendChild(btn('C\'est la FIN', 'rouge', ()=>{ etape='fin'; }));
     // contraintes du tronçon (optionnel) : longueur fixe, ou « au minimum » (ex. montée juste assez pour la valve)
-    B.appendChild(btn(cL!=null?'↔ fixe '+fmt16(cL):'↔ Contrainte : longueur fixe', cL!=null?'vert large':'gris large', ()=>{ etat.posM={leg:k, fixe:true}; etape='posM'; }, 'centre à centre · optionnel'));
-    B.appendChild(btn(cM?'⇲ au minimum ✔':'⇲ Contrainte : au minimum', cM?'vert large':'gris large', ()=>{ etat.cons.min[k]=!cM; if(!cM) delete etat.cons.longs[k]; }, 'le plus court possible, je calcule')); }
+    B.appendChild(btn(cL!=null?'↔ fixe '+fmt16(cL):'↔ Longueur fixe', cL!=null?'vert demi':'gris demi', ()=>{ etat.posM={leg:k, fixe:true}; etape='posM'; }, 'centre à centre · optionnel'));
+    B.appendChild(btn(cM?'⇲ au minimum ✔':'⇲ Au minimum', cM?'vert demi':'gris demi', ()=>{ etat.cons.min[k]=!cM; if(!cM) delete etat.cons.longs[k]; }, 'le plus court possible, je calcule')); }
   else if(etape==='posM'){ const P=etat.posM; const nomM=P.fixe?'Tronçon '+(P.leg+1)+' : longueur fixe':({te:'Té',valve:'Valve',union:'Union'}[P.m]+' : du raccord d\'avant au CENTRE');
     rendrePad(q, B, nomM, P.fixe?'centre à centre':'optionnel : sinon je la place', (v)=>{ if(P.fixe){ etat.cons.longs[P.leg]=v; delete etat.cons.min[P.leg]; } else { (etat.cons.pos[P.leg]=etat.cons.pos[P.leg]||{})[P.k]=v; } etat.posM=null; etape='bout'; },
       ()=>{ etat.posM=null; etape='bout'; }, P.fixe?'Annuler':'Je place'); }
