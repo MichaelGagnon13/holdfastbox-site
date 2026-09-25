@@ -440,5 +440,7 @@ const CLE='chemin_'+slot;
 function sauver(){ try{ localStorage.setItem(CLE, JSON.stringify({etat, etape, attente, yaw, pitch, zoom, panX, panY, vue:(window.T3?T3.getVue():null), t:Date.now()})); }catch(e){} }
 function restaurer(){ try{ const s=JSON.parse(localStorage.getItem(CLE)||'null'); if(!s||!s.etat||!s.etat.depart) return false; etat=s.etat; etape=s.etape==='posM'?'bout':s.etape; attente=s.attente||null; yaw=s.yaw??yaw; pitch=s.pitch??pitch; zoom=s.zoom||1; panX=s.panX||0; panY=s.panY||0; etat.sel=null; etat.posM=null; departEnvoye=true; if(s.vue){ if(window.T3) T3.setVue(s.vue); else vueEnAttente=s.vue; } return true; }catch(e){ return false; } }
 const _rendre=rendre; rendre=function(){ _rendre(); sauver(); };
+// si la section a été marquée « Fait » depuis un autre appareil, la case n'est plus sur la bande → on repart à neuf
+fetch(API+'/c/etat.json?t='+Date.now()).then(r=>r.json()).then(e=>{ if(etat.depart && !(e.sections||{})[slot]){ try{ localStorage.removeItem(CLE); }catch(x){} location.reload(); } }).catch(()=>{});
 addEventListener('resize', resize); if(restaurer()){ document.getElementById('msg').textContent='Chemin retrouvé (gardé dans le téléphone). Effacer jusqu\'au vide pour recommencer.'; } resize(); rendre();
 </script></body></html>

@@ -83,6 +83,7 @@ document.getElementById('fait').onclick = async () => {
   if (!armeFait){ armeFait = 1; btn.textContent = 'Confirmer ?'; btn.classList.add('confirme');
     setTimeout(() => { armeFait = 0; btn.textContent = '✓ Fait'; btn.classList.remove('confirme'); }, 4000); return; }
   armeFait = 0; btn.textContent = '✓ Fait'; btn.classList.remove('confirme');
+  try{ localStorage.removeItem('chemin_' + actif); }catch(e){}   // Michael 25 sept. : « quand on marque fini, il faut que ce soit effacé »
   let j; try { const ctl = new AbortController(); setTimeout(() => ctl.abort(), 6000); const r = await fetch(API+'/c/api/fait?slot=' + actif, {method:'POST', signal: ctl.signal}); j = await r.json(); } catch(e) { j = {message: 'PC injoignable : dis « section faite » à Claude.'}; }
   document.getElementById('msg').textContent = j.message || '';
   etat = null; await charger();
