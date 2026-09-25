@@ -35,7 +35,7 @@
 </style></head><body>
 <div id="app">
  <div id="haut"><a class="btn gris" id="retour" href="/c/dernier.html" style="text-decoration:none;font-size:12px;padding:8px 10px">← sections</a><h1 id="titre">Section</h1><button class="btn gris" id="annuler">↶ Effacer</button></div>
- <canvas id="cv"></canvas>
+ <canvas id="cv"></canvas><input type="file" id="photo" accept="image/*" capture="environment" style="display:none">
  <div id="panneau"><p id="q"></p><p id="chemin"></p><div class="grille" id="btns"></div><div id="msg"></div></div>
 </div>
 <script>
@@ -182,6 +182,7 @@ function rendre(){
   else if(etape==='fin'){ q.textContent='La fin, c\'est quoi ?';
     for(const k in FINS) B.appendChild(btn(FINS[k], k==='te'?'vert':'or', ()=>{ legCourante().fin='fin:'+k; etat.fini=true; etape='termine'; envoyerForme(); })); }
   else if(etape==='termine'){ q.textContent='Chemin complet. Maintenant les cotes au galon, une par écran.';
+    B.appendChild(btn('📷 Photo du chantier', 'or large', ()=>{ document.getElementById('photo').click(); return false; }, 'ouvre l\'appareil, la photo part chez Claude avec le chemin'));
     B.appendChild(btn('Mesures ➤', 'vert large', ()=>{ etat.sel=null; etape='mesures'; }, 'les cotes en pointillés sur le dessin')); }
   else if(etape==='mesures'){ rendreMesure(q, B); }
   else if(etape==='relire'){ rendreRelecture(q, B); }
@@ -320,6 +321,14 @@ cv.addEventListener('pointerup', e=>{ ptrs.delete(e.pointerId); if(pinch){ if(pt
   if(moved>6||etape!=='mesures') return; const r=cv.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top;
   const h=hits.find(h=>Math.abs(x-h.x)<=h.w&&Math.abs(y-h.y)<=16); if(h){ hist.push(JSON.stringify({etat,etape,attente})); etat.sel=h.qi; const v=valeurQ(questions()[h.qi]); cur={po:v?String(Math.floor(v/16)):'', f:v?v%16:0, c:null}; rendre(); } });
 
+// ---------- photo du chantier (Michael 25 sept.) : appareil direct, réduite, envoyée avec le chemin ----------
+document.getElementById('photo').addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; document.getElementById('msg').textContent='Photo : envoi…';
+  const bmp=await createImageBitmap(f); const k=Math.min(1, 1600/Math.max(bmp.width,bmp.height)); const c=document.createElement('canvas'); c.width=Math.round(bmp.width*k); c.height=Math.round(bmp.height*k);
+  c.getContext('2d').drawImage(bmp,0,0,c.width,c.height); const data=c.toDataURL('image/jpeg',0.82);
+  try{ const ctl=new AbortController(); setTimeout(()=>ctl.abort(), 30000);
+    const r=await fetch(API+'/c/api/photo',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({slot, nom, image:data, phrase:phrase(), legs:etat.legs, cons:etat.cons, ts:Date.now()}),signal:ctl.signal}); const j=await r.json();
+    document.getElementById('msg').textContent=j.message||'Photo envoyée.'; }catch(err){ document.getElementById('msg').textContent='PC injoignable : photo non envoyée.'; }
+  e.target.value=''; });
 // ---------- réseau ----------
 const API = (location.hostname.endsWith('ts.net')||location.hostname==='127.0.0.1') ? '' : 'https://michael-system-product-name.tail362e86.ts.net';
 async function post(url, body){ const ctl=new AbortController(); setTimeout(()=>ctl.abort(), 8000);
